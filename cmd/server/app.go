@@ -1,9 +1,10 @@
 package main
 
 import (
+	"metric-alert/internal/handlers"
 	"net/http"
 
-	"metric-alert/internal/handlers"
+	"github.com/go-chi/chi"
 	"metric-alert/internal/storage"
 )
 
@@ -16,10 +17,13 @@ func NewApp(metric storage.MetricStorage) Application {
 }
 
 func (a Application) Run() {
-	mux := http.NewServeMux()
-	mux.HandleFunc(`/update/`, a.metric.UpdateMetric)
+	r := chi.NewRouter()
+	r.Post(`/update/{metric_type}/{metric_name}/{metric_value}`, a.metric.UpdateMetric)
+	r.Get(`/value/{metric_type}/{metric_name}`, a.metric.GetValue)
 
-	err := http.ListenAndServe(`:8080`, mux)
+	r.NotFoundHandler()
+	r.MethodNotAllowedHandler()
+	err := http.ListenAndServe(`:8080`, r)
 	if err != nil {
 		panic(err)
 	}

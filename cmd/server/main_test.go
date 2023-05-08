@@ -1,56 +1,65 @@
 package main
 
 import (
+	"github.com/go-chi/chi"
+	"metric-alert/internal/handlers"
+	"metric-alert/internal/types"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"metric-alert/internal/handlers"
 	"metric-alert/internal/storage"
 )
 
-func Test_update(t *testing.T) {
-	type want struct {
-		code int
+func TestUpdateMetricValid(t *testing.T) {
+	mockStorage := storage.NewMemStore()
+
+	testMetric := types.Metric{
+		MetricType: types.Gauge,
+		MetricName: "test_gauge",
+		GaugeValue: 5,
 	}
-	tests := []struct {
-		name string
-		args string
-		want want
-	}{
-		{
-			name: "positive test",
-			args: "/update/counter/metric/1",
-			want: want{
-				code: 200,
-			},
-		},
-		{
-			name: "negative test - empty value",
-			args: "/update/gauge/metric/",
-			want: want{
-				code: 400,
-			},
-		},
-		{
-			name: "negative test - empty metric name ",
-			args: "/update/gauge/",
-			want: want{
-				code: 404,
-			},
-		},
+
+	req := httptest.NewRequest("POST", "/update/gauge/test_gauge/5", nil)
+
+	r := chi.NewRouter()
+
+	metricAlerts := handlers.NewMetric(mockStorage)
+	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricAlerts.UpdateMetric)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	finelyMetric, ok := mockStorage.GetMetric(testMetric)
+	assert.Equal(t, testMetric, finelyMetric)
+	assert.Equal(t, true, ok)
+}
+
+func TestUpdateMetricInvalid(t *testing.T) {
+	mockStorage := storage.NewMemStore()
+
+	testMetric := types.Metric{
+		MetricType: types.Gauge,
+		MetricName: "test_gauge",
+		GaugeValue: 6,
 	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			ms := storage.NewMemStore()
-			request := httptest.NewRequest(http.MethodPost, test.args, nil)
-			w := httptest.NewRecorder()
-			h := handlers.NewMetric(ms)
-			h.UpdateMetric(w, request)
-			res := w.Result()
-			defer res.Body.Close()
-			assert.Equal(t, res.StatusCode, test.want.code)
-		})
-	}
+
+	req := httptest.NewRequest("POST", "/update/counter/test_counter/5", nil)
+
+	r := chi.NewRouter()
+
+	metricAlerts := handlers.NewMetric(mockStorage)
+	r.Post("/update/{metric_type}/{metric_name}/{metric_value}", metricAlerts.UpdateMetric)
+
+	rr := httptest.NewRecorder()
+	r.ServeHTTP(rr, req)
+
+	assert.Equal(t, http.StatusOK, rr.Code)
+
+	finelyMetric, ok := mockStorage.GetMetric(testMetric)
+	assert.NotEqual(t, testMetric, finelyMetric)
+	assert.Equal(t, false, ok)
 }

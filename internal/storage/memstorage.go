@@ -9,6 +9,7 @@ type MemStorage struct {
 
 type MetricStorage interface {
 	SetMetric(metric types.Metric)
+	GetMetric(metric types.Metric) (types.Metric, bool)
 }
 
 func NewMemStore() MetricStorage {
@@ -23,4 +24,15 @@ func (m *MemStorage) SetMetric(metric types.Metric) {
 	} else {
 		m.counter[metric.MetricName] += metric.CounterValue
 	}
+}
+
+func (m *MemStorage) GetMetric(metric types.Metric) (types.Metric, bool) {
+	var ok bool
+	if metric.MetricType == types.Gauge {
+		metric.GaugeValue, ok = m.gauge[metric.MetricName]
+	} else {
+		metric.CounterValue, ok = m.counter[metric.MetricName]
+	}
+
+	return metric, ok
 }
