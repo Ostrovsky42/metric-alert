@@ -26,15 +26,15 @@ type Agent struct {
 	serverURL      string
 }
 
-func NewAgent(reportInterval time.Duration, pollInterval time.Duration, serverURL string) Agent {
+func NewAgent(reportInterval, pollInterval int, serverURL string) Agent {
 	client := &http.Client{}
 	metrics := make(map[string]interface{})
 	return Agent{
 		client:         client,
 		serverURL:      serverURL,
 		metrics:        metrics,
-		reportInterval: reportInterval,
-		pollInterval:   pollInterval,
+		reportInterval: time.Duration(reportInterval) * time.Second,
+		pollInterval:   time.Duration(pollInterval) * time.Second,
 	}
 }
 

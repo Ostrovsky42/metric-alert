@@ -1,17 +1,20 @@
 package main
 
 import (
+	"flag"
 	"metric-alert/internal/agent"
 	"net/http"
-	"time"
 )
 
-func main() {
-	pollInterval := 2 * time.Second
-	reportInterval := 10 * time.Second
-	serverURL := "http://localhost:8080"
+var port = flag.String("a", "8080", "HTTP server endpoint address")
+var reportInterval = flag.Int("r", 10, "input image file")
+var pollInterval = flag.Int("p", 2, "input image file")
 
-	a := agent.NewAgent(reportInterval, pollInterval, serverURL)
+func main() {
+	flag.Parse()
+
+	serverAddress := "http://localhost:" + *port
+	a := agent.NewAgent(*reportInterval, *pollInterval, serverAddress)
 	a.Run()
 
 	mux := http.NewServeMux()
