@@ -1,13 +1,14 @@
 package storage
 
+import "metric-alert/internal/types"
+
 type MemStorage struct {
 	gauge   map[string]float64
 	counter map[string]int64
 }
 
 type MetricStorage interface {
-	SetGauge(name string, gauge float64)
-	Count(name string, value int64)
+	SetMetric(metric types.Metric)
 }
 
 func NewMemStore() MetricStorage {
@@ -16,10 +17,10 @@ func NewMemStore() MetricStorage {
 	return &MemStorage{counter: c, gauge: g}
 }
 
-func (m *MemStorage) SetGauge(name string, gauge float64) {
-	m.gauge[name] = gauge
-}
-
-func (m *MemStorage) Count(name string, value int64) {
-	m.counter[name] += value
+func (m *MemStorage) SetMetric(metric types.Metric) {
+	if metric.MetricType == types.Gauge {
+		m.gauge[metric.MetricName] = metric.GaugeValue
+	} else {
+		m.counter[metric.MetricName] += metric.CounterValue
+	}
 }

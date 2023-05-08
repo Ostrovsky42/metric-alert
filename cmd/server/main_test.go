@@ -37,7 +37,7 @@ func Test_update(t *testing.T) {
 			name: "negative test - empty metric name ",
 			args: "/update/gauge/",
 			want: want{
-				code: 400,
+				code: 404,
 			},
 		},
 	}
