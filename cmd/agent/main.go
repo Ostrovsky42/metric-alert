@@ -7,14 +7,14 @@ import (
 )
 
 var port = flag.String("a", "8080", "HTTP server endpoint address")
-var reportInterval = flag.Int("r", 10, "input image file")
-var pollInterval = flag.Int("p", 2, "input image file")
+var reportIntervalSec = flag.Int("r", 10, "frequency of sending metrics")
+var pollIntervalSec = flag.Int("p", 2, "metric polling frequency")
 
 func main() {
 	flag.Parse()
 
 	serverAddress := "http://localhost:" + *port
-	a := agent.NewAgent(*reportInterval, *pollInterval, serverAddress)
+	a := agent.NewAgent(*reportIntervalSec, *pollIntervalSec, serverAddress)
 	a.Run()
 
 	mux := http.NewServeMux()

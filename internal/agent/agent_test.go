@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
 func TestSendMetric(t *testing.T) {
@@ -38,8 +37,8 @@ func TestSendMetric(t *testing.T) {
 		},
 	}
 
-	reportInterval := 10 * time.Second
-	pollInterval := 2 * time.Second
+	reportInterval := 10
+	pollInterval := 2
 	agent := NewAgent(reportInterval, pollInterval, testServer.URL)
 
 	for _, test := range tests {
