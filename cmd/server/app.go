@@ -16,14 +16,14 @@ func NewApp(metric storage.MetricStorage) Application {
 	return Application{metric: handlers.NewMetric(metric)}
 }
 
-func (a Application) Run(port string) {
+func (a Application) Run(serverAddress string) {
 	r := chi.NewRouter()
 	r.Post(`/update/{metric_type}/{metric_name}/{metric_value}`, a.metric.UpdateMetric)
 	r.Get(`/value/{metric_type}/{metric_name}`, a.metric.GetValue)
 
 	r.NotFoundHandler()
 	r.MethodNotAllowedHandler()
-	err := http.ListenAndServe(`:`+port, r)
+	err := http.ListenAndServe(serverAddress, r)
 	if err != nil {
 		panic(err)
 	}
