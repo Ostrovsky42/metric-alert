@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -39,7 +40,12 @@ func TestSendMetric(t *testing.T) {
 
 	reportInterval := 10
 	pollInterval := 2
-	agent := NewAgent(reportInterval, pollInterval, testServer.URL)
+	testURL, err := url.Parse(testServer.URL)
+	if err != nil {
+		return
+	}
+
+	agent := NewAgent(reportInterval, pollInterval, testURL.Host)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
