@@ -22,7 +22,7 @@ func (m *MemStorage) SetMetric(metric types.Metric) {
 	if metric.MetricType == types.Gauge {
 		m.gauge[metric.MetricName] = metric.GaugeValue
 	} else {
-		m.counter[metric.MetricName] = metric.CounterValue
+		m.counter[metric.MetricName] += metric.CounterValue
 	}
 }
 
