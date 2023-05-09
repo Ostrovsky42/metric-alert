@@ -1,24 +1,14 @@
 package main
 
 import (
-	"flag"
+	"log"
 	"metric-alert/internal/agent"
-	"net/http"
 )
 
-var serverAddress = flag.String("a", "localhost:8080", "HTTP server endpoint address")
-var reportIntervalSec = flag.Int("r", 10, "frequency of sending metrics")
-var pollIntervalSec = flag.Int("p", 2, "metric polling frequency")
-
 func main() {
-	flag.Parse()
+	parseFlags()
 
-	a := agent.NewAgent(*reportIntervalSec, *pollIntervalSec, *serverAddress)
+	a := agent.NewAgent(reportIntervalSec, pollIntervalSec, host)
+	log.Default().Println("agent will send reports to " + host)
 	a.Run()
-
-	mux := http.NewServeMux()
-	err := http.ListenAndServe(`:8081`, mux)
-	if err != nil {
-		panic(err)
-	}
 }

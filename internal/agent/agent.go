@@ -31,7 +31,7 @@ func NewAgent(reportInterval, pollInterval int, serverURL string) Agent {
 	metrics := make(map[string]interface{})
 	return Agent{
 		client:         client,
-		serverURL:      serverURL,
+		serverURL:      "http://" + serverURL,
 		metrics:        metrics,
 		reportInterval: time.Duration(reportInterval) * time.Second,
 		pollInterval:   time.Duration(pollInterval) * time.Second,
@@ -40,7 +40,7 @@ func NewAgent(reportInterval, pollInterval int, serverURL string) Agent {
 
 func (a Agent) Run() {
 	go a.gatherMetrics()
-	go a.sendReport()
+	a.sendReport()
 }
 
 func (a Agent) sendReport() {
