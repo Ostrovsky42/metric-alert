@@ -6,9 +6,13 @@ import (
 )
 
 func main() {
-	parseFlags()
+	cfg, err := getConfig()
+	if err != nil {
+		log.Fatal("err get config: " + err.Error())
+	}
 
-	a := agent.NewAgent(reportIntervalSec, pollIntervalSec, host)
+	a := agent.NewAgent(cfg.ReportIntervalSec, cfg.PollIntervalSec, cfg.ServerHost)
 	log.Default().Println("agent will send reports to " + host)
+
 	a.Run()
 }
