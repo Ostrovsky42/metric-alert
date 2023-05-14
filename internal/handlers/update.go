@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+	"metric-alert/internal/handlers/validator"
 	"metric-alert/internal/storage"
 	"metric-alert/internal/types"
 )
@@ -23,14 +24,14 @@ func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	metric.MetricName = chi.URLParam(r, "metric_name")
 	mValue := chi.URLParam(r, "metric_value")
 
-	err := ValidateUpdate(&metric, mValue)
+	err := validator.ValidateUpdate(&metric, mValue)
 	if err != nil {
-		if err == ErrEmptyMetricName {
-			http.Error(w, err.Error(), http.StatusNotFound)
+		if err.Error() == "empty metric name" {
+			w.WriteHeader(http.StatusNotFound)
 
 			return
 		}
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 
 		return
 	}

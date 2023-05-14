@@ -1,30 +1,27 @@
 package main
 
 import (
-	"metric-alert/internal/handlers"
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"metric-alert/internal/handlers"
+	"metric-alert/internal/routes"
 	"metric-alert/internal/storage"
 )
 
 type Application struct {
-	metric handlers.MetricAlerts
+	metric     handlers.MetricAlerts
+	serverHost string
 }
 
-func NewApp(metric storage.MetricStorage) Application {
-	return Application{metric: handlers.NewMetric(metric)}
+func NewApp(metric storage.MetricStorage, serverHost string) Application {
+	return Application{
+		metric:     handlers.NewMetric(metric),
+		serverHost: serverHost,
+	}
 }
 
-func (a Application) Run(serverHost string) {
-	r := chi.NewRouter()
-	r.Post(`/update/{metric_type}/{metric_name}/{metric_value}`, a.metric.UpdateMetric)
-	r.Get(`/value/{metric_type}/{metric_name}`, a.metric.GetValue)
-
-	r.NotFoundHandler()
-	r.MethodNotAllowedHandler()
-
-	err := http.ListenAndServe(serverHost, r)
+func (a Application) Run() {
+	err := http.ListenAndServe(a.serverHost, routes.NewRoutes(a.metric))
 	if err != nil {
 		panic(err)
 	}

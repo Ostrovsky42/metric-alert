@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"github.com/caarlos0/env/v6"
 )
 
@@ -9,7 +10,7 @@ type Config struct {
 }
 
 func getConfig() (Config, error) {
-	parseFlags()
+	flagCfg := parseFlags()
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {
@@ -17,8 +18,17 @@ func getConfig() (Config, error) {
 	}
 
 	if cfg.ServerHost == "" {
-		cfg.ServerHost = host
+		cfg.ServerHost = flagCfg.ServerHost
 	}
 
 	return cfg, nil
+}
+
+func parseFlags() Config {
+	flagCfg := Config{}
+	flag.StringVar(&flagCfg.ServerHost, "a", "localhost:8080", "server endpoint host")
+
+	flag.Parse()
+
+	return flagCfg
 }

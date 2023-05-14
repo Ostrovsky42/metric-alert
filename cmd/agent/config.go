@@ -1,6 +1,10 @@
 package main
 
-import "github.com/caarlos0/env/v6"
+import (
+	"flag"
+
+	"github.com/caarlos0/env/v6"
+)
 
 type Config struct {
 	ServerHost        string `env:"ADDRESS"`
@@ -9,7 +13,7 @@ type Config struct {
 }
 
 func getConfig() (Config, error) {
-	parseFlags()
+	flagCfg := parseFlags()
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {
@@ -17,14 +21,25 @@ func getConfig() (Config, error) {
 	}
 
 	if cfg.ServerHost == "" {
-		cfg.ServerHost = host
+		cfg.ServerHost = flagCfg.ServerHost
 	}
 	if cfg.ReportIntervalSec == 0 {
-		cfg.ReportIntervalSec = reportIntervalSec
+		cfg.ReportIntervalSec = flagCfg.ReportIntervalSec
 	}
 	if cfg.PollIntervalSec == 0 {
-		cfg.PollIntervalSec = pollIntervalSec
+		cfg.PollIntervalSec = flagCfg.PollIntervalSec
 	}
 
 	return cfg, nil
+}
+
+func parseFlags() Config {
+	flagCfg := Config{}
+	flag.StringVar(&flagCfg.ServerHost, "a", "localhost:8080", "server endpoint address")
+	flag.IntVar(&flagCfg.ReportIntervalSec, "r", 10, "frequency of sending metrics")
+	flag.IntVar(&flagCfg.PollIntervalSec, "p", 2, "metric polling frequency")
+
+	flag.Parse()
+
+	return flagCfg
 }

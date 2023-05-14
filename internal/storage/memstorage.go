@@ -12,7 +12,7 @@ type MetricStorage interface {
 	GetMetric(metric types.Metric) (types.Metric, bool)
 }
 
-func NewMemStore() MetricStorage {
+func NewMemStore() *MemStorage {
 	g := make(map[string]float64)
 	c := make(map[string]int64)
 	return &MemStorage{counter: c, gauge: g}
@@ -28,9 +28,8 @@ func (m *MemStorage) SetMetric(metric types.Metric) {
 
 func (m *MemStorage) GetMetric(metric types.Metric) (types.Metric, bool) {
 	var ok bool
-	if metric.MetricType == types.Gauge {
-		metric.GaugeValue, ok = m.gauge[metric.MetricName]
-	} else {
+	metric.GaugeValue, ok = m.gauge[metric.MetricName]
+	if metric.MetricType == types.Counter {
 		metric.CounterValue, ok = m.counter[metric.MetricName]
 	}
 

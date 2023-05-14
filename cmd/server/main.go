@@ -12,7 +12,8 @@ func main() {
 	}
 
 	memStorage := storage.NewMemStore()
-	a := NewApp(memStorage)
+	a := NewApp(memStorage, cfg.ServerHost)
 	log.Default().Println("server start on " + cfg.ServerHost)
-	a.Run(cfg.ServerHost)
+
+	a.Run()
 }
