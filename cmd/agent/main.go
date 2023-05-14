@@ -12,7 +12,7 @@ func main() {
 	}
 
 	a := agent.NewAgent(cfg.ReportIntervalSec, cfg.PollIntervalSec, cfg.ServerHost)
-	log.Default().Println("agent will send reports to " + host)
+	log.Default().Println("agent will send reports to " + cfg.ServerHost)
 
 	a.Run()
 }
