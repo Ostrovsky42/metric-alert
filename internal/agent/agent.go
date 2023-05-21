@@ -57,13 +57,18 @@ func (a Agent) sendMetricJSON(metric entities.Metrics) error {
 		return err
 	}
 	metricURL := fmt.Sprintf("%s/update/", a.serverURL)
-	req, err := http.NewRequest("POST", metricURL, data)
+	b, err := zipData(data)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", metricURL, b)
 	if err != nil {
 		a.log.Err(err).Bytes("data", data.Bytes()).Msg("err prepare new request")
 
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Encoding", "gzip")
 	response, err := a.client.Do(req)
 	if err != nil {
 		a.log.Err(err).Bytes("request.data", data.Bytes()).Msg("err send request")

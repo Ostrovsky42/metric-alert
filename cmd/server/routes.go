@@ -1,6 +1,7 @@
 package main
 
 import (
+	"compress/gzip"
 	"github.com/go-chi/chi"
 	"github.com/rs/zerolog"
 	"metric-alert/internal/handlers"
@@ -10,7 +11,10 @@ import (
 func NewRoutes(metric handlers.MetricAlerts, log zerolog.Logger) *chi.Mux {
 	r := chi.NewRouter()
 
-	r.Use(midleware.NewLogWriter(log).WithLogging)
+	logMW := midleware.NewLogWriter(log)
+	zipMW := midleware.NewZipMiddleware(log, gzip.BestSpeed)
+
+	r.Use(logMW.WithLogging, zipMW.UnZip, zipMW.Zip)
 
 	r.Post(`/update/`, metric.UpdateMetricWithBody)
 	r.Post(`/value/`, metric.GetValueWithBody)

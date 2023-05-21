@@ -1,6 +1,10 @@
 package agent
 
-import "metric-alert/internal/entities"
+import (
+	"bytes"
+	"compress/gzip"
+	"metric-alert/internal/entities"
+)
 
 const (
 	Alloc = iota
@@ -79,4 +83,17 @@ func pointerUint64(val uint64) *float64 {
 func pointerUint32(val uint32) *float64 {
 	floatVal := float64(val)
 	return &floatVal
+}
+
+func zipData(data *bytes.Buffer) (*bytes.Buffer, error) {
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	defer gz.Close()
+
+	_, err := gz.Write(data.Bytes())
+	if err != nil {
+		return nil, err
+	}
+
+	return &buf, nil
 }
