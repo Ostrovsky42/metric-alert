@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/go-chi/chi"
 	"net/http"
 
 	"github.com/rs/zerolog"
@@ -22,7 +23,7 @@ func NewMetric(metricStorage storage.MetricStorage, log zerolog.Logger) MetricAl
 	}
 }
 
-func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
+func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
 	err := helpers.UnmarshalBody(r.Body, &metric)
 	if err != nil {
@@ -31,7 +32,7 @@ func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	err = validator.ValidateUpdate(metric)
+	err = validator.ValidateUpdateWithBody(metric)
 	if err != nil {
 		m.log.Error().Err(err).Msg("err validate metric")
 		if err.Error() == "empty metric name" {
@@ -57,4 +58,29 @@ func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data.Bytes())
+}
+
+func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
+	metric := entities.Metrics{}
+
+	metric.MType = chi.URLParam(r, "metric_type")
+	metric.ID = chi.URLParam(r, "metric_name")
+	mValue := chi.URLParam(r, "metric_value")
+
+	err := validator.ValidateUpdate(&metric, mValue)
+	if err != nil {
+		m.log.Error().Err(err).Msg("err validate metric")
+		if err.Error() == "empty metric name" {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	m.metricStorage.SetMetric(metric)
+
+	w.WriteHeader(http.StatusOK)
 }

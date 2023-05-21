@@ -21,6 +21,9 @@ func EncodeData(data interface{}) (*bytes.Buffer, error) {
 
 func UnmarshalBody(reader io.ReadCloser, str any) error {
 	body, err := io.ReadAll(reader)
+	if err != nil {
+		return err
+	}
 	defer reader.Close()
 
 	err = json.Unmarshal(body, &str)
