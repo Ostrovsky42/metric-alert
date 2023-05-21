@@ -56,7 +56,7 @@ func (a Agent) sendMetricJSON(metric entities.Metrics) error {
 	if err != nil {
 		return err
 	}
-	metricURL := fmt.Sprintf("%s/update", a.serverURL)
+	metricURL := fmt.Sprintf("%s/update/", a.serverURL)
 	req, err := http.NewRequest("POST", metricURL, data)
 	if err != nil {
 		a.log.Err(err).Bytes("data", data.Bytes()).Msg("err prepare new request")
