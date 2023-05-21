@@ -14,7 +14,7 @@ func NewRoutes(metric handlers.MetricAlerts, log zerolog.Logger) *chi.Mux {
 	logMW := midleware.NewLogWriter(log)
 	zipMW := midleware.NewZipMiddleware(log, gzip.BestSpeed)
 
-	r.Use(logMW.WithLogging, zipMW.UnZip, zipMW.Zip)
+	r.Use(logMW.WithLogging, zipMW.UnZip) //, zipMW.Zip)
 
 	r.Post(`/update/`, metric.UpdateMetricWithBody)
 	r.Post(`/value/`, metric.GetValueWithBody)

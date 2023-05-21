@@ -54,31 +54,32 @@ func (a Agent) sendReportJSON() {
 func (a Agent) sendMetricJSON(metric entities.Metrics) error {
 	data, err := helpers.EncodeData(metric)
 	if err != nil {
+		a.log.Warn().Msg("EncodeData")
+
 		return err
 	}
 	metricURL := fmt.Sprintf("%s/update/", a.serverURL)
-	//zipData, err := zipData(data)
-	//if err != nil {
-	//	return err
-	//}
-	req, err := http.NewRequest("POST", metricURL, data)
+	zipped, err := zipData(data)
 	if err != nil {
-		a.log.Err(err).Bytes("data", data.Bytes()).Msg("err prepare new request")
+		a.log.Warn().Msg("zipData")
+		return err
+	}
+	req, err := http.NewRequest("POST", metricURL, zipped)
+	if err != nil {
+		a.log.Warn().Msg("NewRequest")
 
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	//	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("Content-Encoding", "gzip")
 	response, err := a.client.Do(req)
 	if err != nil {
-		a.log.Err(err).Bytes("request.data", data.Bytes()).Msg("err send request")
+		a.log.Warn().Interface(data.String(), zipped.Bytes()).Msg("Do")
 
 		return err
 	}
 	err = response.Body.Close()
 	if err != nil {
-		a.log.Err(err).Msg("err close response body")
-
 		return err
 	}
 
