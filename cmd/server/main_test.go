@@ -27,12 +27,12 @@ func TestUpdateMetricValid(t *testing.T) {
 	}
 	data, _ := helpers.EncodeData(testMetric)
 
-	req := httptest.NewRequest("POST", "/update", data)
+	req := httptest.NewRequest("POST", "/update/", data)
 
 	r := chi.NewRouter()
 
 	metricAlerts := handlers.NewMetric(mockStorage, log)
-	r.Post("/update", metricAlerts.UpdateMetricWithBody)
+	r.Post("/update/", metricAlerts.UpdateMetricWithBody)
 
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
@@ -54,12 +54,12 @@ func TestUpdateMetricInvalid(t *testing.T) {
 	}
 
 	data, _ := helpers.EncodeData(testMetric)
-	req := httptest.NewRequest("POST", "/update", data)
+	req := httptest.NewRequest("POST", "/update/", data)
 
 	r := chi.NewRouter()
 
 	metricAlerts := handlers.NewMetric(mockStorage, log)
-	r.Post("/update", metricAlerts.UpdateMetricWithBody)
+	r.Post("/update/", metricAlerts.UpdateMetricWithBody)
 
 	rr := httptest.NewRecorder()
 	r.ServeHTTP(rr, req)
