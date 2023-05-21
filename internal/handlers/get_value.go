@@ -70,11 +70,10 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusOK)
 	if metric.MType == entities.Gauge {
 		w.Write([]byte(fmt.Sprintf("%v", *metric.Value)))
 	} else {
 		w.Write([]byte(fmt.Sprintf("%v", *metric.Delta)))
 	}
-
-	w.WriteHeader(http.StatusOK)
 }
