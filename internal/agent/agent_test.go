@@ -15,7 +15,7 @@ func TestSendMetric(t *testing.T) {
 	log := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/update" || r.Method != "POST" {
+		if r.URL.Path != "/update/" || r.Method != "POST" {
 			t.Errorf("Unexpected request URL or method: %v %v", r.URL.Path, r.Method)
 		}
 		contentType := r.Header.Get("Content-Type")
