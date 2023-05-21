@@ -2,7 +2,6 @@ package agent
 
 import (
 	"fmt"
-	"log"
 	"math/rand"
 	"net/http"
 	"runtime"
@@ -37,21 +36,22 @@ func NewAgent(reportInterval, pollInterval int, serverURL string, log zerolog.Lo
 
 func (a Agent) Run() {
 	go a.gatherMetrics()
-	a.sendReport()
+	//go a.sendReport()
+	a.sendReportJSON()
 }
 
-func (a Agent) sendReport() {
+func (a Agent) sendReportJSON() {
 	for {
 		time.Sleep(a.reportInterval)
 		for _, metric := range a.metrics {
-			if err := a.sendMetric(metric); err != nil {
-				log.Default().Println(err)
+			if err := a.sendMetricJSON(metric); err != nil {
+				a.log.Error().Err(err).Msg("err sendMetricJSON")
 			}
 		}
 	}
 }
 
-func (a Agent) sendMetric(metric entities.Metrics) error {
+func (a Agent) sendMetricJSON(metric entities.Metrics) error {
 	data, err := helpers.EncodeData(metric)
 	if err != nil {
 		return err
@@ -74,6 +74,43 @@ func (a Agent) sendMetric(metric entities.Metrics) error {
 	if err != nil {
 		a.log.Err(err).Msg("err close response body")
 
+		return err
+	}
+
+	return nil
+}
+
+func (a Agent) sendReport() {
+	for {
+		time.Sleep(a.reportInterval)
+		for _, metric := range a.metrics {
+			if metric.MType != entities.Counter {
+				if err := a.sendMetric(metric.MType, metric.ID, *metric.Value); err != nil {
+					a.log.Error().Err(err).Msg("err sendMetric")
+				}
+				continue
+			}
+
+			if err := a.sendMetric(metric.MType, metric.ID, *metric.Delta); err != nil {
+				a.log.Error().Err(err).Msg("err sendMetric")
+			}
+		}
+	}
+}
+
+func (a Agent) sendMetric(mType string, name string, value interface{}) error {
+	metricURL := fmt.Sprintf("%s/update/%s/%s/%v", a.serverURL, mType, name, value)
+	req, err := http.NewRequest("POST", metricURL, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", "text/plain")
+	response, err := a.client.Do(req)
+	if err != nil {
+		return err
+	}
+	err = response.Body.Close()
+	if err != nil {
 		return err
 	}
 

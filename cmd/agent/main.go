@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	log := zerolog.New(os.Stdout).With().Timestamp().Logger()
+	log := zerolog.New(os.Stdout).With().Caller().Logger()
 
 	cfg, err := getConfig()
 	if err != nil {

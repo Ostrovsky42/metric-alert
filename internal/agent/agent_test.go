@@ -49,7 +49,7 @@ func TestSendMetric(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := agent.sendMetric(test.arg)
+			err := agent.sendMetricJSON(test.arg)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}
