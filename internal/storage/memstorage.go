@@ -1,36 +1,41 @@
 package storage
 
-import "metric-alert/internal/types"
+import (
+	"metric-alert/internal/entities"
+)
 
 type MemStorage struct {
-	gauge   map[string]float64
-	counter map[string]int64
+	storage map[string]entities.Metrics
 }
 
 type MetricStorage interface {
-	SetMetric(metric types.Metric)
-	GetMetric(metric types.Metric) (types.Metric, bool)
+	SetMetric(metric entities.Metrics) entities.Metrics
+	GetMetric(metric entities.Metrics) (entities.Metrics, bool)
 }
 
 func NewMemStore() *MemStorage {
-	g := make(map[string]float64)
-	c := make(map[string]int64)
-	return &MemStorage{counter: c, gauge: g}
+	return &MemStorage{storage: make(map[string]entities.Metrics)}
 }
 
-func (m *MemStorage) SetMetric(metric types.Metric) {
-	if metric.MetricType == types.Gauge {
-		m.gauge[metric.MetricName] = metric.GaugeValue
+func (m *MemStorage) SetMetric(metric entities.Metrics) entities.Metrics {
+	if metric.MType == entities.Gauge {
+		m.storage[metric.ID] = metric
 	} else {
-		m.counter[metric.MetricName] += metric.CounterValue
+		counter, ok := m.storage[metric.ID]
+		if ok {
+			newDelta := *counter.Delta + *metric.Delta
+			metric.Delta = &newDelta
+		}
+
+		m.storage[metric.ID] = metric
 	}
+	return metric
 }
 
-func (m *MemStorage) GetMetric(metric types.Metric) (types.Metric, bool) {
-	var ok bool
-	metric.GaugeValue, ok = m.gauge[metric.MetricName]
-	if metric.MetricType == types.Counter {
-		metric.CounterValue, ok = m.counter[metric.MetricName]
+func (m *MemStorage) GetMetric(metric entities.Metrics) (entities.Metrics, bool) {
+	metric, ok := m.storage[metric.ID]
+	if ok {
+		return metric, ok
 	}
 
 	return metric, ok

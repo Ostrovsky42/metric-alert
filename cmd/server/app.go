@@ -16,7 +16,7 @@ type Application struct {
 
 func NewApp(metric storage.MetricStorage, serverHost string, log zerolog.Logger) Application {
 	return Application{
-		metric:     handlers.NewMetric(metric),
+		metric:     handlers.NewMetric(metric, log),
 		serverHost: serverHost,
 		log:        log,
 	}
