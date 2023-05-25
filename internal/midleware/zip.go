@@ -23,10 +23,6 @@ func NewZipMiddleware(log zerolog.Logger, level int) ZipMiddleware {
 	return ZipMiddleware{
 		log:   log,
 		gzipW: gzW,
-		zContentTypes: []string{
-			"application/json",
-			"text/html",
-		},
 	}
 }
 
@@ -80,14 +76,5 @@ func (z *ZipMiddleware) UnZip(next http.Handler) http.Handler {
 }
 
 func (z *ZipMiddleware) isNeedZipped(r *http.Request) bool {
-	if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-		//reqContentType := r.Header.Get("Content-Type")
-		//for _, contentType := range z.zContentTypes {
-		//	if contentType == reqContentType {
-		return true
-		//	}
-		//}
-	}
-
-	return false
+	return strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
 }
