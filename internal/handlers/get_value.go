@@ -77,3 +77,12 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(fmt.Sprintf("%v", *metric.Delta)))
 	}
 }
+
+func (m MetricAlerts) InfoPage(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
+
+	if err := m.tmp.Execute(w, m.metricStorage.GetAllMetric()); err != nil {
+		m.log.Error().Err(err).Msg("err Execute template")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}

@@ -11,6 +11,7 @@ type MemStorage struct {
 type MetricStorage interface {
 	SetMetric(metric entities.Metrics) entities.Metrics
 	GetMetric(metric entities.Metrics) (entities.Metrics, bool)
+	GetAllMetric() []entities.Metrics
 }
 
 func NewMemStore() *MemStorage {
@@ -39,4 +40,14 @@ func (m *MemStorage) GetMetric(metric entities.Metrics) (entities.Metrics, bool)
 	}
 
 	return metric, ok
+}
+
+func (m *MemStorage) GetAllMetric() []entities.Metrics {
+	metrics := make([]entities.Metrics, 0, len(m.storage))
+
+	for _, id := range MetricIDs {
+		metrics = append(metrics, m.storage[id])
+	}
+
+	return metrics
 }

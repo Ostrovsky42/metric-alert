@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/go-chi/chi"
+	"html/template"
 	"net/http"
 
 	"github.com/rs/zerolog"
@@ -13,12 +14,14 @@ import (
 
 type MetricAlerts struct {
 	metricStorage storage.MetricStorage
+	tmp           *template.Template
 	log           zerolog.Logger
 }
 
-func NewMetric(metricStorage storage.MetricStorage, log zerolog.Logger) MetricAlerts {
+func NewMetric(metricStorage storage.MetricStorage, tmp *template.Template, log zerolog.Logger) MetricAlerts {
 	return MetricAlerts{
 		metricStorage: metricStorage,
+		tmp:           tmp,
 		log:           log,
 	}
 }

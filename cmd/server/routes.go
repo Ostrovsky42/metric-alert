@@ -21,6 +21,7 @@ func NewRoutes(metric handlers.MetricAlerts, log zerolog.Logger) *chi.Mux {
 
 	r.Post(`/update/{metric_type}/{metric_name}/{metric_value}`, metric.UpdateMetric)
 	r.Get(`/value/{metric_type}/{metric_name}`, metric.GetValue)
+	r.Get(`/`, metric.InfoPage)
 
 	r.NotFoundHandler()
 	r.MethodNotAllowedHandler()

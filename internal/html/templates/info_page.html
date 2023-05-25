@@ -1,0 +1,67 @@
+<html>
+<head>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Courier , monospace;
+            background-color: dimgrey;
+            padding: 0 5em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 4px;
+            text-align: left;
+            color: lightgreen;
+
+            border-bottom: 1px solid black;
+        }
+
+        th {
+            background-color: #808080;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range . -}}
+    {{if .Value -}}
+    <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Value}}</td>
+    </tr>
+    {{end}}
+    {{if .Delta -}}
+    <tr>
+        <td>{{.ID}}</td>
+        <td>{{.Delta}}</td>
+    </tr>
+    {{end}}
+    {{end}}
+    </tbody>
+</table>
+<!--<script>-->
+<!--    setTimeout(function() {-->
+<!--        location.reload();-->
+<!--    }, 5000);-->
+
+<!--</script>-->
+
+</body>
+</html></html>
