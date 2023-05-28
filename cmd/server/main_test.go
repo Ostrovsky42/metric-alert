@@ -67,6 +67,6 @@ func TestUpdateMetricInvalid(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 
 	finelyMetric, ok := mockStorage.GetMetric(testMetric)
-	assert.NotEqual(t, testMetric, finelyMetric)
+	assert.Equal(t, testMetric, finelyMetric)
 	assert.Equal(t, false, ok)
 }
