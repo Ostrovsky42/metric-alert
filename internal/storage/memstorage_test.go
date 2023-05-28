@@ -47,7 +47,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Counter, Delta: intPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Counter},
-			want:   entities.Metrics{},
+			want:   entities.Metrics{ID: "metric-alert", MType: entities.Counter},
 			ok:     false,
 		},
 
@@ -57,7 +57,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Counter, Delta: intPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Gauge},
-			want:   entities.Metrics{},
+			want:   entities.Metrics{ID: "metric-alert", MType: entities.Gauge},
 			ok:     false,
 		},
 		{
