@@ -11,13 +11,19 @@ import (
 
 type FileRecorder struct {
 	file           *os.File
-	memStorage     *MemStorage
+	memStorage     MetricStorage
 	updateInterval time.Duration
 	isRestore      bool
 	log            zerolog.Logger
 }
 
-func NewFileRecorder(filename string, interval int, restore bool, memStorage *MemStorage, log zerolog.Logger) (*FileRecorder, error) {
+func NewFileRecorder(
+	filename string,
+	interval int,
+	restore bool,
+	memStorage MetricStorage,
+	log zerolog.Logger,
+) (*FileRecorder, error) {
 	openParam := os.O_RDWR | os.O_CREATE
 	if !restore {
 		openParam |= os.O_TRUNC
@@ -56,6 +62,7 @@ func (f *FileRecorder) restore() {
 		f.log.Error().Err(err).Msg("err file Decoder")
 	}
 
+	f.log.Debug().Interface("metrics", metrics).Msg("restored metrics")
 	f.memStorage.SetMetrics(metrics)
 }
 

@@ -21,6 +21,9 @@ type Application struct {
 func NewApp(cfg Config, log zerolog.Logger) Application {
 	memStorage := storage.NewMemStore()
 	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, cfg.StoreIntervalSec, cfg.Restore, memStorage, log)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error create fileRecorder")
+	}
 
 	tmp, err := template.ParseFiles(templatePath)
 	if err != nil {
