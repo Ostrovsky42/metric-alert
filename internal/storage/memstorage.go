@@ -46,8 +46,16 @@ func (m *MemStorage) GetAllMetric() []entities.Metrics {
 	metrics := make([]entities.Metrics, 0, len(m.storage))
 
 	for _, id := range MetricIDs {
-		metrics = append(metrics, m.storage[id])
+		if metric, ok := m.storage[id]; ok {
+			metrics = append(metrics, metric)
+		}
 	}
 
 	return metrics
+}
+
+func (m *MemStorage) SetMetrics(metrics []entities.Metrics) {
+	for _, metric := range metrics {
+		m.storage[metric.ID] = metric
+	}
 }

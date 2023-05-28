@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/rs/zerolog"
-	"metric-alert/internal/storage"
 )
 
 func main() {
@@ -15,8 +14,7 @@ func main() {
 		log.Fatal().Msg("err get config: " + err.Error())
 	}
 
-	memStorage := storage.NewMemStore()
-	a := NewApp(memStorage, cfg.ServerHost, log)
+	a := NewApp(cfg, log)
 	log.Info().Msg("server start on " + cfg.ServerHost)
 
 	a.Run()
