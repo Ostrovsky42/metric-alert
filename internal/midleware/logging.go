@@ -1,21 +1,12 @@
 package midleware
 
 import (
+	"metric-alert/internal/logger"
 	"net/http"
 	"time"
-
-	"github.com/rs/zerolog"
 )
 
-type LogWriter struct {
-	log zerolog.Logger
-}
-
-func NewLogWriter(log zerolog.Logger) LogWriter {
-	return LogWriter{log: log}
-}
-
-func (l LogWriter) WithLogging(h http.Handler) http.Handler {
+func WithLogging(h http.Handler) http.Handler {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
@@ -25,7 +16,7 @@ func (l LogWriter) WithLogging(h http.Handler) http.Handler {
 		}
 		h.ServeHTTP(&lw, r)
 
-		l.log.Info().
+		logger.Log.Info().
 			Str("uri", r.RequestURI).
 			Str("method", r.Method).
 			Int("status", lw.respData.status).

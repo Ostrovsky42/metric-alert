@@ -1,43 +1,47 @@
 package handlers
 
 import (
+	"encoding/json"
 	"github.com/go-chi/chi"
 	"html/template"
+	"metric-alert/internal/logger"
 	"net/http"
 
-	"github.com/rs/zerolog"
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers/validator"
-	"metric-alert/internal/helpers"
 	"metric-alert/internal/storage"
+)
+
+const (
+	metricType  = "type"
+	metricName  = "name"
+	metricValue = "value"
 )
 
 type MetricAlerts struct {
 	metricStorage storage.MetricStorage
 	tmp           *template.Template
-	log           zerolog.Logger
 }
 
-func NewMetric(metricStorage storage.MetricStorage, tmp *template.Template, log zerolog.Logger) MetricAlerts {
+func NewMetric(metricStorage storage.MetricStorage, tmp *template.Template) MetricAlerts {
 	return MetricAlerts{
 		metricStorage: metricStorage,
 		tmp:           tmp,
-		log:           log,
 	}
 }
 
 func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
-	err := helpers.UnmarshalBody(r.Body, &metric)
+	err := json.NewDecoder(r.Body).Decode(&metric)
 	if err != nil {
-		m.log.Error().Err(err).Msg("err unmarshal body")
+		logger.Log.Error().Err(err).Msg("err unmarshal body")
 		w.WriteHeader(http.StatusBadRequest)
 
 		return
 	}
 	err = validator.ValidateUpdateWithBody(metric)
 	if err != nil {
-		m.log.Error().Err(err).Msg("err validate metric")
+		logger.Log.Error().Err(err).Msg("err validate metric")
 		if err.Error() == "empty metric name" {
 			w.WriteHeader(http.StatusNotFound)
 
@@ -50,9 +54,9 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 
 	metric = m.metricStorage.SetMetric(metric)
 
-	data, err := helpers.EncodeData(metric)
+	data, err := json.Marshal(metric)
 	if err != nil {
-		m.log.Error().Err(err).Msg("err encode data")
+		logger.Log.Error().Err(err).Msg("err encode data")
 		w.WriteHeader(http.StatusInternalServerError)
 
 		return
@@ -60,19 +64,19 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(data.Bytes())
+	w.Write(data)
 }
 
 func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
 
-	metric.MType = chi.URLParam(r, "metric_type")
-	metric.ID = chi.URLParam(r, "metric_name")
-	mValue := chi.URLParam(r, "metric_value")
+	metric.MType = chi.URLParam(r, metricType)
+	metric.ID = chi.URLParam(r, metricName)
+	mValue := chi.URLParam(r, metricValue)
 
 	err := validator.ValidateUpdate(&metric, mValue)
 	if err != nil {
-		m.log.Error().Err(err).Msg("err validate metric")
+		logger.Log.Error().Err(err).Msg("err validate metric")
 		if err.Error() == "empty metric name" {
 			w.WriteHeader(http.StatusNotFound)
 

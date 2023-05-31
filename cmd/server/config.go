@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"os"
-	"strconv"
+	"github.com/caarlos0/env/v6"
+	"metric-alert/internal/logger"
 )
 
 type Config struct {
@@ -13,30 +13,14 @@ type Config struct {
 	Restore          bool   `env:"RESTORE"`
 }
 
-func getConfig() (Config, error) {
+func getConfig() Config {
 	cfg := parseFlags()
-
-	if serverHost, ok := os.LookupEnv("ADDRESS"); ok {
-		cfg.ServerHost = serverHost
-	}
-	if storeIntervalSec, ok := os.LookupEnv("STORE_INTERVAL"); ok {
-		if intInterval, err := strconv.Atoi(storeIntervalSec); err == nil {
-			cfg.StoreIntervalSec = intInterval
-		}
-	}
-	if fileStoragePath, ok := os.LookupEnv("FILE_STORAGE_PATH"); ok {
-		cfg.FileStoragePath = fileStoragePath
-	}
-	if restore, ok := os.LookupEnv("RESTORE"); ok {
-		switch restore {
-		case "true":
-			cfg.Restore = true
-		case "false":
-			cfg.Restore = false
-		}
+	err := env.Parse(&cfg)
+	if err != nil {
+		logger.Log.Fatal().Msg("err parse environment variable to config")
 	}
 
-	return cfg, nil
+	return cfg
 }
 
 func parseFlags() Config {

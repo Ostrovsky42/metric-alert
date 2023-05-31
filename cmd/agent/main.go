@@ -1,22 +1,18 @@
 package main
 
 import (
-	"os"
-
-	"github.com/rs/zerolog"
 	"metric-alert/internal/agent"
+	"metric-alert/internal/logger"
 )
 
 func main() {
-	log := zerolog.New(os.Stdout).With().Caller().Timestamp().Logger()
-
 	cfg, err := getConfig()
 	if err != nil {
-		log.Fatal().Msg("err get config: " + err.Error())
+		logger.Log.Fatal().Msg("err get config: " + err.Error())
 	}
 
-	a := agent.NewAgent(cfg.ReportIntervalSec, cfg.PollIntervalSec, cfg.ServerHost, log)
-	log.Info().Msg("agent will send reports to " + cfg.ServerHost)
+	a := agent.NewAgent(cfg.ReportIntervalSec, cfg.PollIntervalSec, cfg.ServerHost)
+	logger.Log.Info().Msg("agent will send reports to " + cfg.ServerHost)
 
 	a.Run()
 }

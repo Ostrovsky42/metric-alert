@@ -1,15 +1,15 @@
 package agent
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"metric-alert/internal/logger"
 	"net/http"
 	"runtime"
 	"time"
 
-	"github.com/rs/zerolog"
 	"metric-alert/internal/entities"
-	"metric-alert/internal/helpers"
 )
 
 type Agent struct {
@@ -18,41 +18,39 @@ type Agent struct {
 	reportInterval time.Duration
 	pollInterval   time.Duration
 	serverURL      string
-	log            zerolog.Logger
 }
 
-func NewAgent(reportInterval, pollInterval int, serverURL string, log zerolog.Logger) Agent {
+func NewAgent(reportInterval, pollInterval int, serverURL string) *Agent {
 	client := &http.Client{}
 	metrics := setMetricArray()
-	return Agent{
+	return &Agent{
 		client:         client,
 		serverURL:      "http://" + serverURL,
 		metrics:        metrics,
 		reportInterval: time.Duration(reportInterval) * time.Second,
 		pollInterval:   time.Duration(pollInterval) * time.Second,
-		log:            log,
 	}
 }
 
-func (a Agent) Run() {
+func (a *Agent) Run() {
 	go a.gatherMetrics()
 	//go a.sendReport()
 	a.sendReportJSON()
 }
 
-func (a Agent) sendReportJSON() {
+func (a *Agent) sendReportJSON() {
 	for {
 		time.Sleep(a.reportInterval)
 		for _, metric := range a.metrics {
 			if err := a.sendMetricJSON(metric); err != nil {
-				a.log.Error().Err(err).Msg("err sendMetricJSON")
+				logger.Log.Error().Err(err).Msg("err sendMetricJSON")
 			}
 		}
 	}
 }
 
-func (a Agent) sendMetricJSON(metric entities.Metrics) error {
-	data, err := helpers.EncodeData(metric)
+func (a *Agent) sendMetricJSON(metric entities.Metrics) error {
+	data, err := json.Marshal(metric)
 	if err != nil {
 		return err
 	}
@@ -79,19 +77,19 @@ func (a Agent) sendMetricJSON(metric entities.Metrics) error {
 	return nil
 }
 
-func (a Agent) sendReport() {
+func (a *Agent) sendReport() {
 	for {
 		time.Sleep(a.reportInterval)
 		for _, metric := range a.metrics {
 			if metric.MType != entities.Counter {
 				if err := a.sendMetric(metric.MType, metric.ID, *metric.Value); err != nil {
-					a.log.Error().Err(err).Msg("err sendMetric")
+					logger.Log.Error().Err(err).Msg("err sendMetric")
 				}
 				continue
 			}
 
 			if err := a.sendMetric(metric.MType, metric.ID, *metric.Delta); err != nil {
-				a.log.Error().Err(err).Msg("err sendMetric")
+				logger.Log.Error().Err(err).Msg("err sendMetric")
 			}
 		}
 	}
@@ -116,7 +114,7 @@ func (a Agent) sendMetric(mType string, name string, value interface{}) error {
 	return nil
 }
 
-func (a Agent) gatherMetrics() {
+func (a *Agent) gatherMetrics() {
 	var m runtime.MemStats
 	for {
 		runtime.ReadMemStats(&m)

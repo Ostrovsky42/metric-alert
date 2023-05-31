@@ -85,12 +85,12 @@ func pointerUint32(val uint32) *float64 {
 	return &floatVal
 }
 
-func zipData(data *bytes.Buffer) (*bytes.Buffer, error) {
+func zipData(data []byte) (*bytes.Buffer, error) {
 	var buf bytes.Buffer
 	gz := gzip.NewWriter(&buf)
 	defer gz.Close()
 
-	_, err := gz.Write(data.Bytes())
+	_, err := gz.Write(data)
 	if err != nil {
 		return nil, err
 	}

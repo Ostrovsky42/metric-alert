@@ -47,7 +47,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Counter, Delta: intPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Counter},
-			want:   entities.Metrics{ID: "metric-alert", MType: entities.Counter},
+			want:   entities.Metrics{},
 			ok:     false,
 		},
 
@@ -57,7 +57,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Counter, Delta: intPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Gauge},
-			want:   entities.Metrics{ID: "metric-alert", MType: entities.Gauge},
+			want:   entities.Metrics{},
 			ok:     false,
 		},
 		{
@@ -73,7 +73,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1 := tt.storage.GetMetric(tt.metric)
+			got, got1 := tt.storage.GetMetric(tt.metric.ID)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetMetric() got = %v, want %v", got, tt.want)
 			}
@@ -132,7 +132,7 @@ func TestMemStorage_SetMetric(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			tt.storage.SetMetric(tt.metric)
-			got, got1 := tt.storage.GetMetric(tt.want)
+			got, got1 := tt.storage.GetMetric(tt.want.ID)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("GetMetric() got = %v, want %v", got, tt.want)
 			}

@@ -2,9 +2,9 @@ package main
 
 import (
 	"html/template"
+	"metric-alert/internal/logger"
 	"net/http"
 
-	"github.com/rs/zerolog"
 	"metric-alert/internal/handlers"
 	"metric-alert/internal/storage"
 )
@@ -15,35 +15,33 @@ type Application struct {
 	metric      handlers.MetricAlerts
 	fileStorage *storage.FileRecorder
 	serverHost  string
-	log         zerolog.Logger
 }
 
-func NewApp(cfg Config, log zerolog.Logger) Application {
+func NewApp(cfg Config) Application {
 	memStorage := storage.NewMemStore()
-	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, cfg.StoreIntervalSec, cfg.Restore, memStorage, log)
+	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, cfg.StoreIntervalSec, cfg.Restore, memStorage)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error create fileRecorder")
+		logger.Log.Fatal().Err(err).Msg("Error create fileRecorder")
 	}
 
 	tmp, err := template.ParseFiles(templatePath)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error while parse web templates")
+		logger.Log.Fatal().Err(err).Msg("Error while parse web templates")
 	}
 
 	return Application{
-		metric:      handlers.NewMetric(memStorage, tmp, log),
+		metric:      handlers.NewMetric(memStorage, tmp),
 		fileStorage: fileStorage,
 		serverHost:  cfg.ServerHost,
-		log:         log,
 	}
 }
 
 func (a Application) Run() {
 	go a.fileStorage.Run()
 
-	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric, a.log))
+	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric))
 	if err != nil {
-		a.log.Fatal().Err(err).Msg("Error start serve")
+		logger.Log.Fatal().Err(err).Msg("Error start serve")
 	}
 }
 

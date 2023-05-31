@@ -1,21 +1,15 @@
 package main
 
 import (
-	"os"
-
-	"github.com/rs/zerolog"
+	"metric-alert/internal/logger"
 )
 
 func main() {
-	log := zerolog.New(os.Stdout).With().Caller().Timestamp().Logger()
+	logger.InitLogger()
 
-	cfg, err := getConfig()
-	if err != nil {
-		log.Fatal().Msg("err get config: " + err.Error())
-	}
-
-	a := NewApp(cfg, log)
-	log.Info().Msg("server start on " + cfg.ServerHost)
+	cfg := getConfig()
+	a := NewApp(cfg)
+	logger.Log.Info().Msg("server start on " + cfg.ServerHost)
 
 	a.Run()
 }

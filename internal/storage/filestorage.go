@@ -2,9 +2,9 @@ package storage
 
 import (
 	"encoding/json"
-	"github.com/rs/zerolog"
 	"io"
 	"metric-alert/internal/entities"
+	"metric-alert/internal/logger"
 	"os"
 	"time"
 )
@@ -14,7 +14,6 @@ type FileRecorder struct {
 	memStorage     MetricStorage
 	updateInterval time.Duration
 	isRestore      bool
-	log            zerolog.Logger
 }
 
 func NewFileRecorder(
@@ -22,7 +21,6 @@ func NewFileRecorder(
 	interval int,
 	restore bool,
 	memStorage MetricStorage,
-	log zerolog.Logger,
 ) (*FileRecorder, error) {
 	openParam := os.O_RDWR | os.O_CREATE
 	if !restore {
@@ -39,7 +37,6 @@ func NewFileRecorder(
 		memStorage:     memStorage,
 		isRestore:      restore,
 		updateInterval: time.Duration(interval) * time.Second,
-		log:            log,
 	}, nil
 }
 
@@ -59,10 +56,9 @@ func (f *FileRecorder) restore() {
 	var metrics []entities.Metrics
 	err := json.NewDecoder(f.file).Decode(&metrics)
 	if err != nil && err != io.EOF {
-		f.log.Error().Err(err).Msg("err file Decoder")
+		logger.Log.Error().Err(err).Msg("err file Decoder")
 	}
 
-	f.log.Debug().Interface("metrics", metrics).Msg("restored metrics")
 	f.memStorage.SetMetrics(metrics)
 }
 
@@ -74,14 +70,14 @@ func (f *FileRecorder) recordMetric() {
 		if len(metrics) > 0 {
 			err := f.clearFile()
 			if err != nil {
-				f.log.Error().Err(err).Msg("err clear file")
+				logger.Log.Error().Err(err).Msg("err clear file")
 
 				continue
 			}
 
 			err = e.Encode(metrics)
 			if err != nil {
-				f.log.Error().Err(err).Msg("err update file")
+				logger.Log.Error().Err(err).Msg("err update file")
 			}
 		}
 	}

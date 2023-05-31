@@ -11,7 +11,7 @@ type MemStorage struct {
 
 type MetricStorage interface {
 	SetMetric(metric entities.Metrics) entities.Metrics
-	GetMetric(metric entities.Metrics) (entities.Metrics, bool)
+	GetMetric(metricID string) (entities.Metrics, bool)
 	GetAllMetric() []entities.Metrics
 	SetMetrics(metrics []entities.Metrics)
 }
@@ -35,11 +35,8 @@ func (m *MemStorage) SetMetric(metric entities.Metrics) entities.Metrics {
 	return metric
 }
 
-func (m *MemStorage) GetMetric(metric entities.Metrics) (entities.Metrics, bool) {
-	storageMetric, ok := m.storage[metric.ID]
-	if ok {
-		return storageMetric, ok
-	}
+func (m *MemStorage) GetMetric(metricID string) (entities.Metrics, bool) {
+	metric, ok := m.storage[metricID]
 
 	return metric, ok
 }

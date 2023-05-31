@@ -2,26 +2,24 @@ package midleware
 
 import (
 	"compress/gzip"
-	"github.com/rs/zerolog"
 	"io"
+	"metric-alert/internal/logger"
 	"net/http"
 	"strings"
 )
 
 type ZipMiddleware struct {
 	zContentTypes []string
-	log           zerolog.Logger
 	gzipW         *gzip.Writer
 }
 
-func NewZipMiddleware(log zerolog.Logger, level int) ZipMiddleware {
+func NewZipMiddleware(level int) ZipMiddleware {
 	gzW, err := gzip.NewWriterLevel(nil, level)
 	if err != nil {
-		log.Fatal().Err(err).Msg("err create gzip writer")
+		logger.Log.Fatal().Err(err).Msg("err create gzip writer")
 	}
 
 	return ZipMiddleware{
-		log:   log,
 		gzipW: gzW,
 	}
 }
@@ -64,7 +62,7 @@ func (z *ZipMiddleware) UnZip(next http.Handler) http.Handler {
 		gz, err := gzip.NewReader(r.Body)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
-			z.log.Err(err).Msg("err UnZip request body")
+			logger.Log.Err(err).Msg("err UnZip request body")
 
 			return
 		}
