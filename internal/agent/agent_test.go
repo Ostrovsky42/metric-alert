@@ -2,18 +2,14 @@ package agent
 
 import (
 	"fmt"
-	"github.com/rs/zerolog"
 	"metric-alert/internal/entities"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
 )
 
 func TestSendMetric(t *testing.T) {
-	log := zerolog.New(os.Stdout).With().Timestamp().Logger()
-
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/update/" || r.Method != "POST" {
 			t.Errorf("Unexpected request URL or method: %v %v", r.URL.Path, r.Method)
@@ -45,7 +41,7 @@ func TestSendMetric(t *testing.T) {
 		return
 	}
 
-	agent := NewAgent(reportInterval, pollInterval, testURL.Host, log)
+	agent := NewAgent(reportInterval, pollInterval, testURL.Host)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
