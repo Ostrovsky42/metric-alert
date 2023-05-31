@@ -53,7 +53,7 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
 
 	metric.MType = chi.URLParam(r, metricType)
-	metric.ID = chi.URLParam(r, metricValue)
+	metric.ID = chi.URLParam(r, metricName)
 
 	err := validator.ValidateGet(metric)
 	if err != nil {
