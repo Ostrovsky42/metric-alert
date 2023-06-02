@@ -42,7 +42,7 @@ func (f *FileRecorder) RestoreMetrics() {
 
 func (f *FileRecorder) RecordMetrics() {
 	metrics := f.metricCache.GetAllMetric()
-	if len(metrics) < 0 {
+	if len(metrics) == 0 {
 		return
 	}
 
