@@ -1,26 +1,61 @@
 package validator
 
 import (
+	"metric-alert/internal/entities"
 	"strconv"
-
-	"metric-alert/internal/types"
 )
 
-func ValidateUpdate(metric *types.Metric, mValue string) error {
-	if metric.MetricType == "" {
+func ValidateUpdateWithBody(metric entities.Metrics) error {
+	if metric.MType == "" {
 		return errEmptyMetricType
 	}
 
-	if metric.MetricName == "" {
+	if metric.ID == "" {
+		return errEmptyMetricName
+	}
+
+	if metric.MType == entities.Counter && metric.Delta == nil {
+		return errNotProvidedValue
+	}
+
+	if metric.MType == entities.Gauge && metric.Value == nil {
+		return errNotProvidedValue
+	}
+
+	return nil
+}
+
+func ValidateGetWithBody(metric entities.Metrics) error {
+	if metric.MType == "" {
+		return errEmptyMetricType
+	}
+
+	if metric.MType != entities.Gauge && metric.MType != entities.Counter {
+		return errUnknownMetricType
+	}
+
+	if metric.ID == "" {
+		return errEmptyMetricName
+	}
+
+	return nil
+}
+
+func ValidateUpdate(metric *entities.Metrics, mValue string) error {
+	if metric.MType == "" {
+		return errEmptyMetricType
+	}
+
+	if metric.MType == "" {
 		return errEmptyMetricName
 	}
 
 	var err error
-	switch metric.MetricType {
-	case types.Gauge:
-		metric.GaugeValue, err = prepareGauge(mValue)
-	case types.Counter:
-		metric.CounterValue, err = prepareCounter(mValue)
+	switch metric.MType {
+	case entities.Gauge:
+		metric.Value, err = prepareGauge(mValue)
+	case entities.Counter:
+		metric.Delta, err = prepareCounter(mValue)
 	default:
 		err = errUnknownMetricType
 	}
@@ -31,34 +66,35 @@ func ValidateUpdate(metric *types.Metric, mValue string) error {
 	return nil
 }
 
-func ValidateGet(metric types.Metric) error {
-	if metric.MetricType == "" {
+func ValidateGet(metric entities.Metrics) error {
+	if metric.MType == "" {
 		return errEmptyMetricType
 	}
 
-	if metric.MetricType != types.Gauge && metric.MetricType != types.Counter {
+	if metric.MType != entities.Gauge && metric.MType != entities.Counter {
 		return errUnknownMetricType
 	}
 
-	if metric.MetricName == "" {
+	if metric.ID == "" {
 		return errEmptyMetricName
 	}
 
 	return nil
 }
 
-func prepareGauge(metric string) (float64, error) {
+func prepareGauge(metric string) (*float64, error) {
 	value, err := strconv.ParseFloat(metric, 64)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return value, nil
+	return &value, nil
 }
 
-func prepareCounter(metric string) (int64, error) {
+func prepareCounter(metric string) (*int64, error) {
 	value, err := strconv.Atoi(metric)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return int64(value), nil
+	intVal := int64(value)
+	return &intVal, nil
 }

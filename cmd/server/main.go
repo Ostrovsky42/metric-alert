@@ -1,19 +1,15 @@
 package main
 
 import (
-	"log"
-	"metric-alert/internal/storage"
+	"metric-alert/internal/logger"
 )
 
 func main() {
-	cfg, err := getConfig()
-	if err != nil {
-		log.Fatal("err get config: " + err.Error())
-	}
+	logger.InitLogger()
 
-	memStorage := storage.NewMemStore()
-	a := NewApp(memStorage, cfg.ServerHost)
-	log.Default().Println("server start on " + cfg.ServerHost)
+	cfg := getConfig()
+	a := NewApp(cfg)
+	logger.Log.Info().Msg("server start on " + cfg.ServerHost)
 
 	a.Run()
 }

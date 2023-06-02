@@ -2,31 +2,34 @@ package main
 
 import (
 	"flag"
+
 	"github.com/caarlos0/env/v6"
+	"metric-alert/internal/logger"
 )
 
 type Config struct {
-	ServerHost string `env:"ADDRESS"`
+	ServerHost       string `env:"ADDRESS"`
+	StoreIntervalSec int    `env:"STORE_INTERVAL"`
+	FileStoragePath  string `env:"FILE_STORAGE_PATH"`
+	Restore          bool   `env:"RESTORE"`
 }
 
-func getConfig() (Config, error) {
-	flagCfg := parseFlags()
-	var cfg Config
+func getConfig() Config {
+	cfg := parseFlags()
 	err := env.Parse(&cfg)
 	if err != nil {
-		return Config{}, err
+		logger.Log.Fatal().Msg("err parse environment variable to config")
 	}
 
-	if cfg.ServerHost == "" {
-		cfg.ServerHost = flagCfg.ServerHost
-	}
-
-	return cfg, nil
+	return cfg
 }
 
 func parseFlags() Config {
 	flagCfg := Config{}
 	flag.StringVar(&flagCfg.ServerHost, "a", "localhost:8080", "server endpoint host")
+	flag.IntVar(&flagCfg.StoreIntervalSec, "i", 300, "interval for writing server readings to disk")
+	flag.StringVar(&flagCfg.FileStoragePath, "f", "/tmp/metrics-db.json", "path to the file for recording readings")
+	flag.BoolVar(&flagCfg.Restore, "r", true, "load saved values from the specified file at startup")
 
 	flag.Parse()
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"metric-alert/internal/logger"
 
 	"github.com/caarlos0/env/v6"
 )
@@ -13,21 +14,10 @@ type Config struct {
 }
 
 func getConfig() (Config, error) {
-	flagCfg := parseFlags()
-	var cfg Config
+	cfg := parseFlags()
 	err := env.Parse(&cfg)
 	if err != nil {
-		return Config{}, err
-	}
-
-	if cfg.ServerHost == "" {
-		cfg.ServerHost = flagCfg.ServerHost
-	}
-	if cfg.ReportIntervalSec == 0 {
-		cfg.ReportIntervalSec = flagCfg.ReportIntervalSec
-	}
-	if cfg.PollIntervalSec == 0 {
-		cfg.PollIntervalSec = flagCfg.PollIntervalSec
+		logger.Log.Fatal().Msg("")
 	}
 
 	return cfg, nil
