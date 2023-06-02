@@ -56,10 +56,8 @@ func StartRecording(fileStorage *storage.FileRecorder, updateInterval int) {
 	defer ticker.Stop()
 
 	for {
-		select {
-		case <-ticker.C:
-			fileStorage.RecordMetrics()
-		}
+		time.Sleep(interval)
+		fileStorage.RecordMetrics()
 	}
 }
 
