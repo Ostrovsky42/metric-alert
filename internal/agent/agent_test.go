@@ -2,7 +2,7 @@ package agent
 
 import (
 	"fmt"
-	"metric-alert/internal/entities"
+	"metric-alert/internal/agent/gatherer"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -24,12 +24,12 @@ func TestSendMetric(t *testing.T) {
 	var value float64 = 1
 	tests := []struct {
 		name string
-		arg  entities.Metrics
+		arg  gatherer.Metrics
 		want error
 	}{
 		{
 			name: "positive test",
-			arg:  entities.Metrics{MType: "gauge", ID: "metric", Value: &value},
+			arg:  gatherer.Metrics{MType: "gauge", ID: "metric", Value: &value},
 			want: nil,
 		},
 	}
@@ -45,7 +45,7 @@ func TestSendMetric(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			err := agent.sendMetricJSON(test.arg)
+			err = agent.sender.SendMetricJSON(test.arg)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}

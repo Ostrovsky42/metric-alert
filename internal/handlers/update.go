@@ -19,14 +19,14 @@ const (
 )
 
 type MetricAlerts struct {
-	metricStorage storage.MetricStorage
-	tmp           *template.Template
+	metricCache storage.MetricCache
+	tmp         *template.Template
 }
 
-func NewMetric(metricStorage storage.MetricStorage, tmp *template.Template) MetricAlerts {
+func NewMetric(metricStorage storage.MetricCache, tmp *template.Template) MetricAlerts {
 	return MetricAlerts{
-		metricStorage: metricStorage,
-		tmp:           tmp,
+		metricCache: metricStorage,
+		tmp:         tmp,
 	}
 }
 
@@ -52,7 +52,7 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	metric = m.metricStorage.SetMetric(metric)
+	metric = m.metricCache.SetMetric(metric)
 
 	data, err := json.Marshal(metric)
 	if err != nil {
@@ -87,7 +87,7 @@ func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.metricStorage.SetMetric(metric)
+	m.metricCache.SetMetric(metric)
 
 	w.WriteHeader(http.StatusOK)
 }

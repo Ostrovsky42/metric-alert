@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"metric-alert/internal/logger"
 	"net/http"
+	"time"
 
 	"metric-alert/internal/handlers"
 	"metric-alert/internal/storage"
@@ -19,10 +20,16 @@ type Application struct {
 
 func NewApp(cfg Config) Application {
 	memStorage := storage.NewMemStore()
-	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, cfg.StoreIntervalSec, cfg.Restore, memStorage)
+	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, memStorage)
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error create fileRecorder")
 	}
+
+	if cfg.Restore {
+		fileStorage.RestoreMetrics()
+	}
+
+	go StartRecording(fileStorage, cfg.StoreIntervalSec)
 
 	tmp, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -37,11 +44,22 @@ func NewApp(cfg Config) Application {
 }
 
 func (a Application) Run() {
-	go a.fileStorage.Run()
-
 	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric))
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error start serve")
+	}
+}
+
+func StartRecording(fileStorage *storage.FileRecorder, updateInterval int) {
+	interval := time.Duration(updateInterval) * time.Second
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			fileStorage.RecordMetrics()
+		}
 	}
 }
 

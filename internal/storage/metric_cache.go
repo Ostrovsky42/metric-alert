@@ -5,22 +5,22 @@ import (
 	"sort"
 )
 
-type MemStorage struct {
+type MemCache struct {
 	storage map[string]entities.Metrics
 }
 
-type MetricStorage interface {
+type MetricCache interface {
 	SetMetric(metric entities.Metrics) entities.Metrics
 	GetMetric(metricID string) (entities.Metrics, bool)
 	GetAllMetric() []entities.Metrics
 	SetMetrics(metrics []entities.Metrics)
 }
 
-func NewMemStore() *MemStorage {
-	return &MemStorage{storage: make(map[string]entities.Metrics)}
+func NewMemStore() *MemCache {
+	return &MemCache{storage: make(map[string]entities.Metrics)}
 }
 
-func (m *MemStorage) SetMetric(metric entities.Metrics) entities.Metrics {
+func (m *MemCache) SetMetric(metric entities.Metrics) entities.Metrics {
 	if metric.MType == entities.Gauge {
 		m.storage[metric.ID] = metric
 	} else {
@@ -35,13 +35,13 @@ func (m *MemStorage) SetMetric(metric entities.Metrics) entities.Metrics {
 	return metric
 }
 
-func (m *MemStorage) GetMetric(metricID string) (entities.Metrics, bool) {
+func (m *MemCache) GetMetric(metricID string) (entities.Metrics, bool) {
 	metric, ok := m.storage[metricID]
 
 	return metric, ok
 }
 
-func (m *MemStorage) GetAllMetric() []entities.Metrics {
+func (m *MemCache) GetAllMetric() []entities.Metrics {
 	metrics := make([]entities.Metrics, 0, len(m.storage))
 
 	for _, metric := range m.storage {
@@ -66,7 +66,7 @@ func (m *MemStorage) GetAllMetric() []entities.Metrics {
 	return metrics
 }
 
-func (m *MemStorage) SetMetrics(metrics []entities.Metrics) {
+func (m *MemCache) SetMetrics(metrics []entities.Metrics) {
 	for _, metric := range metrics {
 		m.storage[metric.ID] = metric
 	}

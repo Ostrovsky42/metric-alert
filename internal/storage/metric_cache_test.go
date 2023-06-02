@@ -18,14 +18,14 @@ func intPointer(val int64) *int64 {
 func TestMemStorage_GetMetric(t *testing.T) {
 	tests := []struct {
 		name    string
-		storage *MemStorage
+		storage *MemCache
 		metric  entities.Metrics
 		want    entities.Metrics
 		ok      bool
 	}{
 		{
 			name: "positive test",
-			storage: &MemStorage{
+			storage: &MemCache{
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Gauge, Value: floatPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric", MType: entities.Gauge},
@@ -34,7 +34,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 		},
 		{
 			name: "positive test",
-			storage: &MemStorage{
+			storage: &MemCache{
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Counter, Delta: intPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric", MType: entities.Counter},
@@ -43,7 +43,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 		},
 		{
 			name: "negative test",
-			storage: &MemStorage{
+			storage: &MemCache{
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Counter, Delta: intPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Counter},
@@ -53,7 +53,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 
 		{
 			name: "negative test",
-			storage: &MemStorage{
+			storage: &MemCache{
 				storage: map[string]entities.Metrics{"metric": {ID: "metric", MType: entities.Counter, Delta: intPointer(0)}},
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Gauge},
@@ -62,7 +62,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 		},
 		{
 			name: "positive empty name key?",
-			storage: &MemStorage{
+			storage: &MemCache{
 				storage: map[string]entities.Metrics{"": {ID: "", MType: entities.Gauge, Value: floatPointer(8)}},
 			},
 			metric: entities.Metrics{ID: "", MType: entities.Gauge},
@@ -87,42 +87,42 @@ func TestMemStorage_GetMetric(t *testing.T) {
 func TestMemStorage_SetMetric(t *testing.T) {
 	tests := []struct {
 		name    string
-		storage *MemStorage
+		storage *MemCache
 		metric  entities.Metrics
 		want    entities.Metrics
 		ok      bool
 	}{
 		{
 			name:    "positive test",
-			storage: &MemStorage{storage: map[string]entities.Metrics{}},
+			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Gauge, Value: floatPointer(44)},
 			want:    entities.Metrics{ID: "metric", MType: entities.Gauge, Value: floatPointer(44)},
 			ok:      true,
 		},
 		{
 			name:    "positive test",
-			storage: &MemStorage{storage: map[string]entities.Metrics{}},
+			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
 			want:    entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
 			ok:      true,
 		},
 		{
 			name:    "negative test",
-			storage: &MemStorage{storage: map[string]entities.Metrics{}},
+			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
 			want:    entities.Metrics{},
 			ok:      false,
 		},
 		{
 			name:    "negative test",
-			storage: &MemStorage{storage: map[string]entities.Metrics{}},
+			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(155)},
 			want:    entities.Metrics{},
 			ok:      false,
 		},
 		{
 			name:    "positive empty name key?",
-			storage: &MemStorage{storage: map[string]entities.Metrics{}},
+			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "", MType: entities.Gauge, Value: floatPointer(1)},
 			want:    entities.Metrics{ID: "", MType: entities.Gauge, Value: floatPointer(1)},
 			ok:      true,

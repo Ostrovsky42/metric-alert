@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/go-chi/chi"
-	"metric-alert/internal/logger"
 	"net/http"
 
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers/validator"
+	"metric-alert/internal/logger"
 )
 
 func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +29,7 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := m.metricStorage.GetMetric(metric.ID)
+	metric, ok := m.metricCache.GetMetric(metric.ID)
 	if !ok {
 		logger.Log.Warn().Interface("metric", metric).Msg("not found metric")
 		w.WriteHeader(http.StatusNotFound)
@@ -63,22 +64,32 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := m.metricStorage.GetMetric(metric.ID)
+	metric, ok := m.metricCache.GetMetric(metric.ID)
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
 
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write(metric.ByteValue())
+	sendOK(w, metric)
 }
 
 func (m MetricAlerts) InfoPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	if err := m.tmp.Execute(w, m.metricStorage.GetAllMetric()); err != nil {
+	if err := m.tmp.Execute(w, m.metricCache.GetAllMetric()); err != nil {
 		logger.Log.Error().Err(err).Msg("err Execute template")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
+}
+
+func sendOK(w http.ResponseWriter, metric entities.Metrics) {
+	w.WriteHeader(http.StatusOK)
+	if metric.MType == entities.Gauge {
+		fmt.Fprintf(w, "%v", *metric.Value)
+
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "%v", *metric.Delta)
 }

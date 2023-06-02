@@ -6,91 +6,56 @@ import (
 	"metric-alert/internal/entities"
 	"metric-alert/internal/logger"
 	"os"
-	"time"
 )
 
 type FileRecorder struct {
-	file           *os.File
-	memStorage     MetricStorage
-	updateInterval time.Duration
-	isRestore      bool
+	filename    string
+	metricCache MetricCache
+	isRestore   bool
 }
 
 func NewFileRecorder(
 	filename string,
-	interval int,
-	restore bool,
-	memStorage MetricStorage,
+	memStorage MetricCache,
 ) (*FileRecorder, error) {
-	openParam := os.O_RDWR | os.O_CREATE
-	if !restore {
-		openParam |= os.O_TRUNC
-	}
-
-	file, err := os.OpenFile(filename, openParam, 0666)
-	if err != nil {
-		return nil, err
-	}
-
 	return &FileRecorder{
-		file:           file,
-		memStorage:     memStorage,
-		isRestore:      restore,
-		updateInterval: time.Duration(interval) * time.Second,
+		filename:    filename,
+		metricCache: memStorage,
 	}, nil
 }
 
-func (f *FileRecorder) Run() {
-	defer f.file.Close()
-
-	f.restore()
-
-	f.recordMetric()
-}
-
-func (f *FileRecorder) restore() {
-	if !f.isRestore {
-		return
+func (f *FileRecorder) RestoreMetrics() {
+	file, err := os.OpenFile(f.filename, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		logger.Log.Fatal().Err(err).Msg("err open file")
 	}
+	defer file.Close()
 
 	var metrics []entities.Metrics
-	err := json.NewDecoder(f.file).Decode(&metrics)
+	err = json.NewDecoder(file).Decode(&metrics)
 	if err != nil && err != io.EOF {
 		logger.Log.Error().Err(err).Msg("err file Decoder")
 	}
 
-	f.memStorage.SetMetrics(metrics)
+	f.metricCache.SetMetrics(metrics)
 }
 
-func (f *FileRecorder) recordMetric() {
-	e := json.NewEncoder(f.file)
-	for {
-		time.Sleep(f.updateInterval)
-		metrics := f.memStorage.GetAllMetric()
-		if len(metrics) > 0 {
-			err := f.clearFile()
-			if err != nil {
-				logger.Log.Error().Err(err).Msg("err clear file")
-
-				continue
-			}
-
-			err = e.Encode(metrics)
-			if err != nil {
-				logger.Log.Error().Err(err).Msg("err update file")
-			}
-		}
-	}
-}
-
-func (f *FileRecorder) clearFile() error {
-	if err := f.file.Truncate(0); err != nil {
-		return err
+func (f *FileRecorder) RecordMetrics() {
+	metrics := f.metricCache.GetAllMetric()
+	if len(metrics) < 0 {
+		return
 	}
 
-	if _, err := f.file.Seek(0, 0); err != nil {
-		return err
-	}
+	file, err := os.OpenFile(f.filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err open file")
 
-	return nil
+		return
+	}
+	defer file.Close()
+
+	err = json.NewEncoder(file).Encode(metrics)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err update file")
+	}
 }

@@ -1,39 +1,30 @@
 package agent
 
 import (
-	"encoding/json"
-	"fmt"
-	"math/rand"
+	"metric-alert/internal/agent/gatherer"
+	"metric-alert/internal/agent/metricsender"
 	"metric-alert/internal/logger"
-	"net/http"
-	"runtime"
 	"time"
 
 	"metric-alert/internal/entities"
 )
 
 type Agent struct {
-	client         *http.Client
-	metrics        *[29]entities.Metrics
+	sender         *metricsender.MetricSender
+	gatherer       *gatherer.Gatherer
 	reportInterval time.Duration
-	pollInterval   time.Duration
-	serverURL      string
 }
 
 func NewAgent(reportInterval, pollInterval int, serverURL string) *Agent {
-	client := &http.Client{}
-	metrics := setMetricArray()
 	return &Agent{
-		client:         client,
-		serverURL:      "http://" + serverURL,
-		metrics:        metrics,
+		sender:         metricsender.NewMetricSender(serverURL),
+		gatherer:       gatherer.NewGatherer(pollInterval),
 		reportInterval: time.Duration(reportInterval) * time.Second,
-		pollInterval:   time.Duration(pollInterval) * time.Second,
 	}
 }
 
 func (a *Agent) Run() {
-	go a.gatherMetrics()
+	go a.gatherer.GatherMetrics()
 	//go a.sendReport()
 	a.sendReportJSON()
 }
@@ -41,113 +32,28 @@ func (a *Agent) Run() {
 func (a *Agent) sendReportJSON() {
 	for {
 		time.Sleep(a.reportInterval)
-		for _, metric := range a.metrics {
-			if err := a.sendMetricJSON(metric); err != nil {
+		for _, metric := range a.gatherer.Metrics {
+			if err := a.sender.SendMetricJSON(metric); err != nil {
 				logger.Log.Error().Err(err).Msg("err sendMetricJSON")
 			}
 		}
 	}
 }
 
-func (a *Agent) sendMetricJSON(metric entities.Metrics) error {
-	data, err := json.Marshal(metric)
-	if err != nil {
-		return err
-	}
-	metricURL := fmt.Sprintf("%s/update/", a.serverURL)
-	zipped, err := zipData(data)
-	if err != nil {
-		return err
-	}
-	req, err := http.NewRequest("POST", metricURL, zipped)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-Encoding", "gzip")
-	response, err := a.client.Do(req)
-	if err != nil {
-		return err
-	}
-	err = response.Body.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (a *Agent) sendReport() {
 	for {
 		time.Sleep(a.reportInterval)
-		for _, metric := range a.metrics {
+		for _, metric := range a.gatherer.Metrics {
 			if metric.MType != entities.Counter {
-				if err := a.sendMetric(metric.MType, metric.ID, *metric.Value); err != nil {
+				if err := a.sender.SendMetric(metric.MType, metric.ID, metric.Value); err != nil {
 					logger.Log.Error().Err(err).Msg("err sendMetric")
 				}
 				continue
 			}
 
-			if err := a.sendMetric(metric.MType, metric.ID, *metric.Delta); err != nil {
+			if err := a.sender.SendMetric(metric.MType, metric.ID, metric.Delta); err != nil {
 				logger.Log.Error().Err(err).Msg("err sendMetric")
 			}
 		}
-	}
-}
-
-func (a Agent) sendMetric(mType string, name string, value interface{}) error {
-	metricURL := fmt.Sprintf("%s/update/%s/%s/%v", a.serverURL, mType, name, value)
-	req, err := http.NewRequest("POST", metricURL, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "text/plain")
-	response, err := a.client.Do(req)
-	if err != nil {
-		return err
-	}
-	err = response.Body.Close()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (a *Agent) gatherMetrics() {
-	var m runtime.MemStats
-	for {
-		runtime.ReadMemStats(&m)
-		a.metrics[Alloc].Value = pointerUint64(m.Alloc)
-		a.metrics[BuckHashSys].Value = pointerUint64(m.BuckHashSys)
-		a.metrics[Frees].Value = pointerUint64(m.Frees)
-		a.metrics[GCSys].Value = pointerUint64(m.GCSys)
-		a.metrics[HeapAlloc].Value = pointerUint64(m.HeapAlloc)
-		a.metrics[HeapIdle].Value = pointerUint64(m.HeapIdle)
-		a.metrics[HeapInuse].Value = pointerUint64(m.HeapInuse)
-		a.metrics[HeapObjects].Value = pointerUint64(m.HeapObjects)
-		a.metrics[HeapReleased].Value = pointerUint64(m.HeapReleased)
-		a.metrics[HeapSys].Value = pointerUint64(m.HeapSys)
-		a.metrics[LastGC].Value = pointerUint64(m.LastGC)
-		a.metrics[Lookups].Value = pointerUint64(m.Lookups)
-		a.metrics[MCacheInuse].Value = pointerUint64(m.MCacheInuse)
-		a.metrics[MCacheSys].Value = pointerUint64(m.MCacheSys)
-		a.metrics[MSpanInuse].Value = pointerUint64(m.MSpanInuse)
-		a.metrics[MSpanSys].Value = pointerUint64(m.MSpanSys)
-		a.metrics[Mallocs].Value = pointerUint64(m.Mallocs)
-		a.metrics[NextGC].Value = pointerUint64(m.NextGC)
-		a.metrics[NumForcedGC].Value = pointerUint32(m.NumForcedGC)
-		a.metrics[NumGC].Value = pointerUint32(m.NumGC)
-		a.metrics[OtherSys].Value = pointerUint64(m.OtherSys)
-		a.metrics[PauseTotalNs].Value = pointerUint64(m.PauseTotalNs)
-		a.metrics[StackInuse].Value = pointerUint64(m.StackInuse)
-		a.metrics[StackSys].Value = pointerUint64(m.StackSys)
-		a.metrics[Sys].Value = pointerUint64(m.Sys)
-		a.metrics[TotalAlloc].Value = pointerUint64(m.TotalAlloc)
-		a.metrics[GCCPUFraction].Value = &m.GCCPUFraction
-		a.metrics[RandomValue].Value = pointerUint32(rand.Uint32())
-
-		*a.metrics[PollCount].Delta++
-		time.Sleep(a.pollInterval)
 	}
 }
