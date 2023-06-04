@@ -29,7 +29,7 @@ func TestUpdateMetricValid(t *testing.T) {
 
 	r := chi.NewRouter()
 
-	metricAlerts := handlers.NewMetric(mockStorage, nil)
+	metricAlerts := handlers.NewMetric(mockStorage, nil, nil) //todo mock
 	r.Post("/update/", metricAlerts.UpdateMetricWithBody)
 
 	rr := httptest.NewRecorder()
@@ -55,7 +55,7 @@ func TestUpdateMetricInvalid(t *testing.T) {
 
 	r := chi.NewRouter()
 
-	metricAlerts := handlers.NewMetric(mockStorage, nil)
+	metricAlerts := handlers.NewMetric(mockStorage, nil, nil)
 	r.Post("/update/", metricAlerts.UpdateMetricWithBody)
 
 	rr := httptest.NewRecorder()
