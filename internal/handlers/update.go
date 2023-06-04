@@ -20,12 +20,14 @@ const (
 
 type MetricAlerts struct {
 	metricCache storage.MetricCache
+	pg          *storage.Postgres
 	tmp         *template.Template
 }
 
-func NewMetric(metricStorage storage.MetricCache, tmp *template.Template) MetricAlerts {
+func NewMetric(metricStorage storage.MetricCache, pg *storage.Postgres, tmp *template.Template) MetricAlerts {
 	return MetricAlerts{
 		metricCache: metricStorage,
+		pg:          pg,
 		tmp:         tmp,
 	}
 }

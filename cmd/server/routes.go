@@ -19,6 +19,8 @@ func NewRoutes(metric handlers.MetricAlerts) *chi.Mux {
 
 	r.Post(`/update/{type}/{name}/{value}`, metric.UpdateMetric)
 	r.Get(`/value/{type}/{name}`, metric.GetValue)
+
+	r.Get("/ping", metric.PingDB)
 	r.Get(`/`, metric.InfoPage)
 
 	r.NotFoundHandler()

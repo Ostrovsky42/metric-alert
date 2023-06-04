@@ -14,6 +14,7 @@ const templatePath = "internal/html/templates/info_page.html"
 
 type Application struct {
 	metric      handlers.MetricAlerts
+	postgres    *storage.Postgres
 	fileStorage *storage.FileRecorder
 	serverHost  string
 }
@@ -23,6 +24,10 @@ func NewApp(cfg Config) Application {
 	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, memStorage)
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error create fileRecorder")
+	}
+	pg, err := storage.NewPostgresDB(cfg.DataBaseDSN)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Error connect to db")
 	}
 
 	if cfg.Restore {
@@ -37,7 +42,8 @@ func NewApp(cfg Config) Application {
 	}
 
 	return Application{
-		metric:      handlers.NewMetric(memStorage, tmp),
+		metric:      handlers.NewMetric(memStorage, pg, tmp),
+		postgres:    pg,
 		fileStorage: fileStorage,
 		serverHost:  cfg.ServerHost,
 	}
@@ -48,6 +54,10 @@ func (a Application) Run() {
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error start serve")
 	}
+}
+
+func (a Application) Close() {
+	a.postgres.Close()
 }
 
 func StartRecording(fileStorage *storage.FileRecorder, updateInterval int) {

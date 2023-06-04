@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
@@ -92,4 +93,14 @@ func sendOK(w http.ResponseWriter, metric entities.Metrics) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "%v", *metric.Delta)
+}
+
+func (m MetricAlerts) PingDB(w http.ResponseWriter, r *http.Request) {
+	if err := m.pg.Conn.Ping(context.Background()); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
