@@ -30,7 +30,7 @@ func parseFlags() Config {
 	flag.StringVar(&flagCfg.ServerHost, "a", "localhost:8080", "server endpoint host")
 	flag.IntVar(&flagCfg.StoreIntervalSec, "i", 300, "interval for writing server readings to disk")
 	flag.StringVar(&flagCfg.FileStoragePath, "f", "/tmp/metrics-db.json", "path to the file for recording readings")
-	flag.StringVar(&flagCfg.DataBaseDSN, "d", "postgres://metric_user:metric_pass@localhost:5433/metric_alert", "string with the address of the connection to the database")
+	flag.StringVar(&flagCfg.DataBaseDSN, "d", "", "string with the address of the connection to the database")
 	flag.BoolVar(&flagCfg.Restore, "r", true, "load saved values from the specified file at startup")
 
 	flag.Parse()
