@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"github.com/go-chi/chi"
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers"
@@ -15,7 +16,7 @@ import (
 )
 
 func TestUpdateMetricValid(t *testing.T) {
-	mockStorage := storage.NewMemStore()
+	mockStorage, _ := storage.InitStorage("", "", 40, false)
 
 	var value float64 = 5
 	testMetric := entities.Metrics{
@@ -29,7 +30,7 @@ func TestUpdateMetricValid(t *testing.T) {
 
 	r := chi.NewRouter()
 
-	metricAlerts := handlers.NewMetric(mockStorage, nil, nil) //todo mock
+	metricAlerts := handlers.NewMetric(mockStorage, nil) //todo mock
 	r.Post("/update/", metricAlerts.UpdateMetricWithBody)
 
 	rr := httptest.NewRecorder()
@@ -37,13 +38,13 @@ func TestUpdateMetricValid(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	finelyMetric, ok := mockStorage.GetMetric(testMetric.ID)
+	finelyMetric, err := mockStorage.GetMetric(testMetric.ID)
 	assert.Equal(t, testMetric, finelyMetric)
-	assert.Equal(t, true, ok)
+	assert.Equal(t, nil, err)
 }
 
 func TestUpdateMetricInvalid(t *testing.T) {
-	mockStorage := storage.NewMemStore()
+	mockStorage, _ := storage.InitStorage("", "", 40, false)
 
 	testMetric := entities.Metrics{
 		MType: entities.Gauge,
@@ -55,7 +56,7 @@ func TestUpdateMetricInvalid(t *testing.T) {
 
 	r := chi.NewRouter()
 
-	metricAlerts := handlers.NewMetric(mockStorage, nil, nil)
+	metricAlerts := handlers.NewMetric(mockStorage, nil)
 	r.Post("/update/", metricAlerts.UpdateMetricWithBody)
 
 	rr := httptest.NewRecorder()
@@ -63,7 +64,7 @@ func TestUpdateMetricInvalid(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 
-	finelyMetric, ok := mockStorage.GetMetric(testMetric.ID)
+	finelyMetric, err := mockStorage.GetMetric(testMetric.ID)
 	assert.Equal(t, finelyMetric, entities.Metrics{})
-	assert.Equal(t, false, ok)
+	assert.Equal(t, errors.New("not found metric"), err)
 }

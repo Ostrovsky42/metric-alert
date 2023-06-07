@@ -1,7 +1,8 @@
 package storage
 
 import (
-	"reflect"
+	"errors"
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"metric-alert/internal/entities"
@@ -15,13 +16,15 @@ func intPointer(val int64) *int64 {
 	return &val
 }
 
+var errorNoFound = errors.New("not found metric")
+
 func TestMemStorage_GetMetric(t *testing.T) {
 	tests := []struct {
 		name    string
 		storage *MemCache
 		metric  entities.Metrics
 		want    entities.Metrics
-		ok      bool
+		err     error
 	}{
 		{
 			name: "positive test",
@@ -30,7 +33,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			},
 			metric: entities.Metrics{ID: "metric", MType: entities.Gauge},
 			want:   entities.Metrics{ID: "metric", MType: entities.Gauge, Value: floatPointer(0)},
-			ok:     true,
+			err:    nil,
 		},
 		{
 			name: "positive test",
@@ -39,7 +42,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			},
 			metric: entities.Metrics{ID: "metric", MType: entities.Counter},
 			want:   entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(0)},
-			ok:     true,
+			err:    nil,
 		},
 		{
 			name: "negative test",
@@ -48,7 +51,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Counter},
 			want:   entities.Metrics{},
-			ok:     false,
+			err:    errorNoFound,
 		},
 
 		{
@@ -58,7 +61,7 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			},
 			metric: entities.Metrics{ID: "metric-alert", MType: entities.Gauge},
 			want:   entities.Metrics{},
-			ok:     false,
+			err:    errorNoFound,
 		},
 		{
 			name: "positive empty name key?",
@@ -67,19 +70,15 @@ func TestMemStorage_GetMetric(t *testing.T) {
 			},
 			metric: entities.Metrics{ID: "", MType: entities.Gauge},
 			want:   entities.Metrics{ID: "", MType: entities.Gauge, Value: floatPointer(8)},
-			ok:     true,
+			err:    nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 := tt.storage.GetMetric(tt.metric.ID)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetMetric() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.ok {
-				t.Errorf("GetMetric() got1 = %v, want %v", got1, tt.ok)
-			}
+			assert.Equal(t, got, tt.want)
+			assert.Equal(t, got1, tt.err)
 		})
 	}
 }
@@ -90,42 +89,42 @@ func TestMemStorage_SetMetric(t *testing.T) {
 		storage *MemCache
 		metric  entities.Metrics
 		want    entities.Metrics
-		ok      bool
+		err     error
 	}{
 		{
 			name:    "positive test",
 			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Gauge, Value: floatPointer(44)},
 			want:    entities.Metrics{ID: "metric", MType: entities.Gauge, Value: floatPointer(44)},
-			ok:      true,
+			err:     nil,
 		},
 		{
 			name:    "positive test",
 			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
 			want:    entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
-			ok:      true,
+			err:     nil,
 		},
 		{
 			name:    "negative test",
 			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
 			want:    entities.Metrics{},
-			ok:      false,
+			err:     errorNoFound,
 		},
 		{
 			name:    "negative test",
 			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(155)},
 			want:    entities.Metrics{},
-			ok:      false,
+			err:     errorNoFound,
 		},
 		{
 			name:    "positive empty name key?",
 			storage: &MemCache{storage: map[string]entities.Metrics{}},
 			metric:  entities.Metrics{ID: "", MType: entities.Gauge, Value: floatPointer(1)},
 			want:    entities.Metrics{ID: "", MType: entities.Gauge, Value: floatPointer(1)},
-			ok:      true,
+			err:     nil,
 		},
 	}
 	for _, tt := range tests {
@@ -133,13 +132,8 @@ func TestMemStorage_SetMetric(t *testing.T) {
 
 			tt.storage.SetMetric(tt.metric)
 			got, got1 := tt.storage.GetMetric(tt.want.ID)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetMetric() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.ok {
-				t.Errorf("GetMetric() got1 = %v, want %v", got1, tt.ok)
-			}
-
+			assert.Equal(t, got, tt.want)
+			assert.Equal(t, got1, tt.err)
 		})
 	}
 }
