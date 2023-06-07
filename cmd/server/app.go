@@ -2,39 +2,30 @@ package main
 
 import (
 	"html/template"
-	"metric-alert/internal/logger"
-	"net/http"
-	"time"
-
 	"metric-alert/internal/handlers"
+	"metric-alert/internal/logger"
 	"metric-alert/internal/storage"
+	"net/http"
 )
 
 const templatePath = "internal/html/templates/info_page.html"
 
 type Application struct {
-	metric      handlers.MetricAlerts
-	postgres    *storage.Postgres
-	fileStorage *storage.FileRecorder
-	serverHost  string
+	metric     handlers.MetricAlerts
+	storage    *storage.Storage
+	serverHost string
 }
 
 func NewApp(cfg Config) Application {
-	memStorage := storage.NewMemStore()
-	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, memStorage)
+	memStorage, err := storage.InitStorage(
+		cfg.FileStoragePath,
+		cfg.DataBaseDSN,
+		cfg.StoreIntervalSec,
+		cfg.Restore,
+	)
 	if err != nil {
-		logger.Log.Fatal().Err(err).Msg("Error create fileRecorder")
+		logger.Log.Fatal().Err(err).Msg("failed init storage")
 	}
-	pg, err := storage.NewPostgresDB(cfg.DataBaseDSN)
-	if err != nil {
-		logger.Log.Error().Err(err).Msg("Error connect to db")
-	}
-
-	if cfg.Restore {
-		fileStorage.RestoreMetrics()
-	}
-
-	go StartRecording(fileStorage, cfg.StoreIntervalSec)
 
 	tmp, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -42,10 +33,9 @@ func NewApp(cfg Config) Application {
 	}
 
 	return Application{
-		metric:      handlers.NewMetric(memStorage, pg, tmp),
-		postgres:    pg,
-		fileStorage: fileStorage,
-		serverHost:  cfg.ServerHost,
+		metric:     handlers.NewMetric(memStorage, tmp),
+		storage:    memStorage,
+		serverHost: cfg.ServerHost,
 	}
 }
 
@@ -57,18 +47,7 @@ func (a Application) Run() {
 }
 
 func (a Application) Close() {
-	a.postgres.Close()
-}
-
-func StartRecording(fileStorage *storage.FileRecorder, updateInterval int) {
-	interval := time.Duration(updateInterval) * time.Second
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	for {
-		time.Sleep(interval)
-		fileStorage.RecordMetrics()
-	}
+	a.storage.Close()
 }
 
 /*

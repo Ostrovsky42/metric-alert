@@ -10,13 +10,13 @@ import (
 
 type FileRecorder struct {
 	filename    string
-	metricCache MetricCache
+	metricCache *MemCache
 	isRestore   bool
 }
 
 func NewFileRecorder(
 	filename string,
-	memStorage MetricCache,
+	memStorage *MemCache,
 ) (*FileRecorder, error) {
 	return &FileRecorder{
 		filename:    filename,
@@ -41,7 +41,7 @@ func (f *FileRecorder) RestoreMetrics() {
 }
 
 func (f *FileRecorder) RecordMetrics() {
-	metrics := f.metricCache.GetAllMetric()
+	metrics, _ := f.metricCache.GetAllMetric()
 	if len(metrics) == 0 {
 		return
 	}

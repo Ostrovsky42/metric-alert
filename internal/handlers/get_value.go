@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi"
+	"github.com/jackc/pgx/v4"
 	"net/http"
 
 	"metric-alert/internal/entities"
@@ -30,10 +31,15 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := m.metricCache.GetMetric(metric.ID)
-	if !ok {
-		logger.Log.Warn().Interface("metric", metric).Msg("not found metric")
-		w.WriteHeader(http.StatusNotFound)
+	metric, err = m.metricStorage.GetMetric(metric.ID)
+	if err != nil {
+		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
+		if errors.Is(err, pgx.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 
 		return
 	}
@@ -65,9 +71,15 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := m.metricCache.GetMetric(metric.ID)
-	if !ok {
-		w.WriteHeader(http.StatusNotFound)
+	metric, err = m.metricStorage.GetMetric(metric.ID)
+	if err != nil {
+		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
+		if errors.Is(err, pgx.ErrNoRows) {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 
 		return
 	}
@@ -78,7 +90,15 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 func (m MetricAlerts) InfoPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	if err := m.tmp.Execute(w, m.metricCache.GetAllMetric()); err != nil {
+	metrics, err := m.metricStorage.GetAllMetric()
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error get metrics")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	if err = m.tmp.Execute(w, metrics); err != nil {
 		logger.Log.Error().Err(err).Msg("err Execute template")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -96,7 +116,7 @@ func sendOK(w http.ResponseWriter, metric entities.Metrics) {
 }
 
 func (m MetricAlerts) PingDB(w http.ResponseWriter, r *http.Request) {
-	if err := m.pg.Conn.Ping(context.Background()); err != nil {
+	if err := m.metricStorage.Ping(); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
 		return

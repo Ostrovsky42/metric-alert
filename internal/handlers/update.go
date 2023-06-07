@@ -19,16 +19,14 @@ const (
 )
 
 type MetricAlerts struct {
-	metricCache storage.MetricCache
-	pg          *storage.Postgres
-	tmp         *template.Template
+	metricStorage storage.MetricStorage
+	tmp           *template.Template
 }
 
-func NewMetric(metricStorage storage.MetricCache, pg *storage.Postgres, tmp *template.Template) MetricAlerts {
+func NewMetric(metricStorage storage.MetricStorage, tmp *template.Template) MetricAlerts {
 	return MetricAlerts{
-		metricCache: metricStorage,
-		pg:          pg,
-		tmp:         tmp,
+		metricStorage: metricStorage,
+		tmp:           tmp,
 	}
 }
 
@@ -54,7 +52,13 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	metric = m.metricCache.SetMetric(metric)
+	metric, err = m.metricStorage.SetMetric(metric)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error set metric")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 
 	data, err := json.Marshal(metric)
 	if err != nil {
@@ -89,7 +93,13 @@ func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.metricCache.SetMetric(metric)
+	_, err = m.metricStorage.SetMetric(metric)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error set metric")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }
