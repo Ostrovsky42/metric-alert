@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"errors"
+	"github.com/jackc/pgx/v4"
 	"metric-alert/internal/entities"
 	"metric-alert/internal/storage/postgres"
 	"time"
@@ -88,6 +90,10 @@ func (m *MetricPG) GetMetric(metricID string) (entities.Metrics, error) {
 		&metric.Delta,
 	)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return entities.Metrics{}, errors.New("not found metric")
+		}
+
 		return entities.Metrics{}, err
 	}
 
