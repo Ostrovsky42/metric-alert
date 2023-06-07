@@ -10,7 +10,6 @@ type MetricStorage interface {
 	SetMetric(metric entities.Metrics) (entities.Metrics, error)
 	GetMetric(metricID string) (entities.Metrics, error)
 	GetAllMetric() ([]entities.Metrics, error)
-	SetMetrics(metrics []entities.Metrics)
 
 	Ping() error
 }
@@ -60,13 +59,6 @@ func (s *Storage) StartRecording(updateInterval int) {
 	}
 }
 
-/*
-При отсутствии переменной окружения DATABASE_DSN или флага командной строки -d
-или при их пустых значениях вернитесь последовательно к:
-хранению метрик в файле при наличии соответствующей переменной окружения или флага командной строки;
-хранению метрик в памяти.
-*/
-
 func (s *Storage) SetMetric(metric entities.Metrics) (entities.Metrics, error) {
 	if s.MetricPG != nil {
 		return s.MetricPG.SetMetric(metric)
@@ -89,14 +81,6 @@ func (s *Storage) GetAllMetric() ([]entities.Metrics, error) {
 	}
 
 	return s.MemCache.GetAllMetric()
-}
-
-func (s *Storage) SetMetrics(metrics []entities.Metrics) {
-	if s.MetricPG != nil {
-		s.MetricPG.SetMetrics(metrics)
-	}
-
-	s.MemCache.SetMetrics(metrics)
 }
 
 func (s *Storage) Ping() error {

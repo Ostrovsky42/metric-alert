@@ -10,6 +10,7 @@ import (
 )
 
 const DefaultQueryTimeout = time.Second * 5
+const NotFound = "not found metric"
 
 var _ MetricStorage = &MetricPG{}
 
@@ -33,11 +34,13 @@ func (m *MetricPG) SetMetric(metric entities.Metrics) (entities.Metrics, error) 
 
 	counter, err := m.GetMetric(metric.ID)
 	if err != nil {
-		return entities.Metrics{}, err
+		if err.Error() != NotFound {
+			return entities.Metrics{}, err
+		}
+	} else {
+		newDelta := *counter.Delta + *metric.Delta
+		metric.Delta = &newDelta
 	}
-
-	newDelta := *counter.Delta + *metric.Delta
-	metric.Delta = &newDelta
 
 	err = m.setMetric(metric)
 	if err != nil {
@@ -91,7 +94,7 @@ func (m *MetricPG) GetMetric(metricID string) (entities.Metrics, error) {
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entities.Metrics{}, errors.New("not found metric")
+			return entities.Metrics{}, errors.New(NotFound)
 		}
 
 		return entities.Metrics{}, err
@@ -124,26 +127,6 @@ func (m *MetricPG) GetAllMetric() ([]entities.Metrics, error) {
 	sortMetric(metrics)
 
 	return metrics, nil
-}
-
-func (m *MetricPG) SetMetrics(metrics []entities.Metrics) {
-	//	sql := `INSERT INTO metrics (id, metric_type, value, delta) VALUES `
-	//values := make([]interface{}, 0, len(m.cache.storage)*4)
-
-	for _, metric := range metrics {
-		m.setMetric(metric)
-
-		//sql += fmt.Sprintf("($%d, $%d, $%d, $%d),", i*4+1, i*4+2, i*4+3, i*4+4)
-		//values = append(values, metric.ID, metric.MType, metric.Value, metric.Delta)
-	}
-	// Удаление последней запятой
-	//sql = sql[:len(sql)-1]
-
-	//_, err := m.DB.Exec(ctx, sql, values...)
-	//if err != nil {
-	//	// Обработка ошибки
-	//	return
-	//}
 }
 
 func (m *MetricPG) Ping() error {

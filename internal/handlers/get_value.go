@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
+	"metric-alert/internal/storage"
 	"net/http"
 
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers/validator"
 	"metric-alert/internal/logger"
 )
-
-const NoFound = "not found metric"
 
 func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
@@ -34,7 +33,7 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 	metric, err = m.metricStorage.GetMetric(metric.ID)
 	if err != nil {
 		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
-		if err.Error() == NoFound {
+		if err.Error() == storage.NotFound {
 			w.WriteHeader(http.StatusNotFound)
 
 			return
@@ -74,7 +73,7 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 	metric, err = m.metricStorage.GetMetric(metric.ID)
 	if err != nil {
 		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
-		if err.Error() == NoFound {
+		if err.Error() == storage.NotFound {
 			w.WriteHeader(http.StatusNotFound)
 
 			return
