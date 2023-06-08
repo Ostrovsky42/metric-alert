@@ -5,7 +5,9 @@ import (
 	"sort"
 )
 
-func sortMetric(metrics []entities.Metrics) {
+const NotFound = "not found metric"
+
+func SortMetric(metrics []entities.Metrics) {
 	sortFunc := func(i, j int) bool {
 		if metrics[i].MType == entities.Counter {
 			return false

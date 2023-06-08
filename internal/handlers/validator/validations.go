@@ -25,6 +25,16 @@ func ValidateUpdateWithBody(metric entities.Metrics) error {
 	return nil
 }
 
+func ValidateMetrics(metrics []entities.Metrics) error {
+	for _, metric := range metrics {
+		if err := ValidateUpdateWithBody(metric); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func ValidateGetWithBody(metric entities.Metrics) error {
 	if metric.MType == "" {
 		return errEmptyMetricType

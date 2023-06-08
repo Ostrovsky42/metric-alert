@@ -7,16 +7,16 @@ import (
 	"github.com/go-chi/chi"
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers"
+	"metric-alert/internal/repository"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"metric-alert/internal/storage"
 )
 
 func TestUpdateMetricValid(t *testing.T) {
-	mockStorage, _ := storage.InitStorage("", "", 40, false)
+	mockStorage, _ := repository.InitRepo("", "", 40, false)
 
 	var value float64 = 5
 	testMetric := entities.Metrics{
@@ -44,7 +44,7 @@ func TestUpdateMetricValid(t *testing.T) {
 }
 
 func TestUpdateMetricInvalid(t *testing.T) {
-	mockStorage, _ := storage.InitStorage("", "", 40, false)
+	mockStorage, _ := repository.InitRepo("", "", 40, false)
 
 	testMetric := entities.Metrics{
 		MType: entities.Gauge,

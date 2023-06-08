@@ -1,22 +1,23 @@
-package storage
+package filestorage
 
 import (
 	"encoding/json"
 	"io"
 	"metric-alert/internal/entities"
 	"metric-alert/internal/logger"
+	"metric-alert/internal/storage/memcache"
 	"os"
 )
 
 type FileRecorder struct {
 	filename    string
-	metricCache *MemCache
+	metricCache *memcache.MemCache
 	isRestore   bool
 }
 
 func NewFileRecorder(
 	filename string,
-	memStorage *MemCache,
+	memStorage *memcache.MemCache,
 ) (*FileRecorder, error) {
 	return &FileRecorder{
 		filename:    filename,

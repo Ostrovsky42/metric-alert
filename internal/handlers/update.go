@@ -5,11 +5,11 @@ import (
 	"github.com/go-chi/chi"
 	"html/template"
 	"metric-alert/internal/logger"
+	"metric-alert/internal/repository"
 	"net/http"
 
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers/validator"
-	"metric-alert/internal/storage"
 )
 
 const (
@@ -19,11 +19,11 @@ const (
 )
 
 type MetricAlerts struct {
-	metricStorage storage.MetricStorage
+	metricStorage repository.MetricRepo
 	tmp           *template.Template
 }
 
-func NewMetric(metricStorage storage.MetricStorage, tmp *template.Template) MetricAlerts {
+func NewMetric(metricStorage repository.MetricRepo, tmp *template.Template) MetricAlerts {
 	return MetricAlerts{
 		metricStorage: metricStorage,
 		tmp:           tmp,
@@ -61,6 +61,49 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 	}
 
 	data, err := json.Marshal(metric)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err encode data")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
+func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Request) {
+	var metrics []entities.Metrics
+	err := json.NewDecoder(r.Body).Decode(&metrics)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err unmarshal body")
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+	err = validator.ValidateMetrics(metrics)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err validate metric")
+		if err.Error() == "empty metric name" {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+
+	err = m.metricStorage.SetMetrics(metrics)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error set metric")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	data, err := json.Marshal(metrics)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err encode data")
 		w.WriteHeader(http.StatusInternalServerError)

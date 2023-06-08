@@ -1,4 +1,4 @@
-package storage
+package memcache
 
 import (
 	"errors"

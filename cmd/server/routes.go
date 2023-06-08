@@ -15,9 +15,10 @@ func NewRoutes(metric handlers.MetricAlerts) *chi.Mux {
 	r.Use(midleware.WithLogging, zipMW.UnZip, zipMW.Zip)
 
 	r.Post(`/update/`, metric.UpdateMetricWithBody)
-	r.Post(`/value/`, metric.GetValueWithBody)
-
+	r.Post(`/updates/`, metric.UpdateMetricsWithBody)
 	r.Post(`/update/{type}/{name}/{value}`, metric.UpdateMetric)
+
+	r.Post(`/value/`, metric.GetValueWithBody)
 	r.Get(`/value/{type}/{name}`, metric.GetValue)
 
 	r.Get("/ping", metric.PingDB)

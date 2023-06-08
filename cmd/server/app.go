@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"metric-alert/internal/handlers"
 	"metric-alert/internal/logger"
-	"metric-alert/internal/storage"
+	"metric-alert/internal/repository"
 	"net/http"
 )
 
@@ -12,12 +12,12 @@ const templatePath = "internal/html/templates/info_page.html"
 
 type Application struct {
 	metric     handlers.MetricAlerts
-	storage    *storage.Storage
+	storage    *repository.Repository
 	serverHost string
 }
 
 func NewApp(cfg Config) Application {
-	memStorage, err := storage.InitStorage(
+	memStorage, err := repository.InitRepo(
 		cfg.FileStoragePath,
 		cfg.DataBaseDSN,
 		cfg.StoreIntervalSec,

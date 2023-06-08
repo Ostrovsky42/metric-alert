@@ -1,17 +1,27 @@
-package storage
+package memcache
 
 import (
 	"errors"
 	"metric-alert/internal/entities"
+	"metric-alert/internal/storage"
 )
 
 type MemCache struct {
 	storage map[string]entities.Metrics
 }
 
-var _ MetricStorage = &MemCache{}
+type MetricCache interface {
+	SetMetric(metric entities.Metrics) (entities.Metrics, error)
+	SetMetrics(metric []entities.Metrics) error
+	GetMetric(metricID string) (entities.Metrics, error)
+	GetAllMetric() ([]entities.Metrics, error)
 
-func NewMemStore() *MemCache {
+	Ping() error
+}
+
+var _ MetricCache = &MemCache{}
+
+func NewMemCache() *MemCache {
 	return &MemCache{storage: make(map[string]entities.Metrics)}
 }
 
@@ -36,7 +46,7 @@ func (m *MemCache) GetMetric(metricID string) (entities.Metrics, error) {
 		return metric, nil
 	}
 
-	return metric, errors.New("not found metric")
+	return metric, errors.New(storage.NotFound)
 }
 
 func (m *MemCache) GetAllMetric() ([]entities.Metrics, error) {
@@ -46,15 +56,17 @@ func (m *MemCache) GetAllMetric() ([]entities.Metrics, error) {
 		metrics = append(metrics, metric)
 	}
 
-	sortMetric(metrics)
+	storage.SortMetric(metrics)
 
 	return metrics, nil
 }
 
-func (m *MemCache) SetMetrics(metrics []entities.Metrics) {
+func (m *MemCache) SetMetrics(metrics []entities.Metrics) error {
 	for _, metric := range metrics {
 		m.storage[metric.ID] = metric
 	}
+
+	return nil
 }
 
 func (m *MemCache) Ping() error {
