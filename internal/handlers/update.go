@@ -125,7 +125,7 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	_, err = json.Marshal(receivedMetric)
+	data, err := json.Marshal(receivedMetric)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err encode data")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -136,7 +136,7 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//w.Write(data)
+	w.Write(data)
 }
 
 func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
