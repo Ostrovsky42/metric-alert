@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi"
 	"html/template"
+	"io"
 	"metric-alert/internal/logger"
 	"metric-alert/internal/repository"
 	"net/http"
@@ -85,7 +86,11 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 
 func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Request) {
 	var metrics []entities.Metrics
-	err := json.NewDecoder(r.Body).Decode(&metrics)
+	incByte, er := io.ReadAll(r.Body)
+
+	logger.Log.Debug().Err(er).Bytes("incoming", incByte).Send()
+	err := json.Unmarshal(incByte, &metrics)
+	//err := json.NewDecoder(r.Body).Decode(&metrics)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err unmarshal body")
 		w.WriteHeader(http.StatusBadRequest)
