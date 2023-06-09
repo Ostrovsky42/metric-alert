@@ -68,7 +68,7 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	getmetric, err := m.metricStorage.GetMetric(metric.ID)
+	receivedMetric, err := m.metricStorage.GetMetric(metric.ID)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("error set metric")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -76,7 +76,7 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	logger.Log.Debug().Interface("getmetric", getmetric).Interface("seted_metrics", metric).Send()
+	logger.Log.Debug().Interface("receivedMetric", receivedMetric).Interface("metrics", metric).Send()
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -112,7 +112,7 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 
 		return
 	}
-	getMetrics, err := m.metricStorage.GetAllMetric()
+	receivedMetric, err := m.metricStorage.GetAllMetric()
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("error set metric")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -120,14 +120,14 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	data, err := json.Marshal(getMetrics)
+	data, err := json.Marshal(receivedMetric)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err encode data")
 		w.WriteHeader(http.StatusInternalServerError)
 
 		return
 	}
-	logger.Log.Debug().Interface("all_metrics", data).Interface("seted_metrics", metrics).Send()
+	logger.Log.Debug().Interface("receivedMetric", receivedMetric).Interface("metrics", metrics).Send()
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

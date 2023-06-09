@@ -30,7 +30,7 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, err = m.metricStorage.GetMetric(metric.ID)
+	receivedMetric, err := m.metricStorage.GetMetric(metric.ID)
 	if err != nil {
 		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
 		if err.Error() == storage.NotFound {
@@ -43,7 +43,7 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(metric)
+	data, err := json.Marshal(receivedMetric)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err encode data")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -70,7 +70,7 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, err = m.metricStorage.GetMetric(metric.ID)
+	receivedMetric, err := m.metricStorage.GetMetric(metric.ID)
 	if err != nil {
 		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
 		if err.Error() == storage.NotFound {
@@ -83,7 +83,7 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendOK(w, metric)
+	sendOK(w, receivedMetric)
 }
 
 func (m MetricAlerts) InfoPage(w http.ResponseWriter, r *http.Request) {
