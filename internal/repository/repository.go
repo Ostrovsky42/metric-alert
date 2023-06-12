@@ -1,12 +1,13 @@
 package repository
 
 import (
+	"time"
+
 	"metric-alert/internal/entities"
 	"metric-alert/internal/storage/db"
 	"metric-alert/internal/storage/filestorage"
 	"metric-alert/internal/storage/memcache"
 	"metric-alert/internal/storage/metricpg"
-	"time"
 )
 
 type MetricRepo interface {
@@ -14,6 +15,7 @@ type MetricRepo interface {
 	SetMetrics(metric []entities.Metrics) error
 	GetMetric(metricID string) (entities.Metrics, error)
 	GetAllMetric() ([]entities.Metrics, error)
+	GetMetricsByIDs(IDs []string) ([]entities.Metrics, error)
 
 	Ping() error
 }
@@ -85,6 +87,14 @@ func (r *Repository) GetMetric(metricID string) (entities.Metrics, error) {
 	}
 
 	return r.MemCache.GetMetric(metricID)
+}
+
+func (r *Repository) GetMetricsByIDs(IDs []string) ([]entities.Metrics, error) {
+	if r.MetricStoragePG != nil {
+		return r.MetricStoragePG.GetMetricsByIDs(IDs)
+	}
+
+	return r.MemCache.GetMetricsByIDs(IDs)
 }
 
 func (r *Repository) GetAllMetric() ([]entities.Metrics, error) {

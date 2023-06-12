@@ -2,6 +2,8 @@ package memcache
 
 import (
 	"errors"
+	"fmt"
+
 	"metric-alert/internal/entities"
 	"metric-alert/internal/storage"
 )
@@ -14,6 +16,7 @@ type MetricCache interface {
 	SetMetric(metric entities.Metrics) (entities.Metrics, error)
 	SetMetrics(metric []entities.Metrics) error
 	GetMetric(metricID string) (entities.Metrics, error)
+	GetMetricsByIDs(IDs []string) ([]entities.Metrics, error)
 	GetAllMetric() ([]entities.Metrics, error)
 
 	Ping() error
@@ -49,6 +52,21 @@ func (m *MemCache) GetMetric(metricID string) (entities.Metrics, error) {
 	return metric, errors.New(storage.NotFound)
 }
 
+func (m *MemCache) GetMetricsByIDs(IDs []string) ([]entities.Metrics, error) {
+	var metrics []entities.Metrics
+	IDs = storage.RemoveDuplicatesIDs(IDs)
+	for _, id := range IDs {
+		metric, ok := m.storage[id]
+		if !ok {
+			return nil, fmt.Errorf("%s by id:%s", storage.NotFound, id)
+		}
+
+		metrics = append(metrics, metric)
+	}
+
+	return metrics, nil
+}
+
 func (m *MemCache) GetAllMetric() ([]entities.Metrics, error) {
 	metrics := make([]entities.Metrics, 0, len(m.storage))
 
@@ -63,7 +81,7 @@ func (m *MemCache) GetAllMetric() ([]entities.Metrics, error) {
 
 func (m *MemCache) SetMetrics(metrics []entities.Metrics) error {
 	for _, metric := range metrics {
-		m.storage[metric.ID] = metric
+		m.SetMetric(metric)
 	}
 
 	return nil

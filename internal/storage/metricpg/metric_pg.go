@@ -18,6 +18,7 @@ type MetricDB interface {
 	SetMetrics(metric []entities.Metrics) error
 	GetMetric(metricID string) (entities.Metrics, error)
 	GetAllMetric() ([]entities.Metrics, error)
+	GetMetricsByIDs(IDs []string) ([]entities.Metrics, error)
 
 	Ping() error
 }
@@ -141,6 +142,13 @@ func (m *MetricStoragePG) GetMetric(metricID string) (entities.Metrics, error) {
 	return m.MetricStorage.GetMetricByID(ctx, metricID)
 }
 
+func (m *MetricStoragePG) GetMetricsByIDs(IDs []string) ([]entities.Metrics, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), DefaultQueryTimeout)
+	defer cancel()
+
+	return m.MetricStorage.GetMetricsByIDs(ctx, IDs)
+}
+
 func (m *MetricStoragePG) GetAllMetric() ([]entities.Metrics, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), DefaultQueryTimeout)
 	defer cancel()
@@ -156,16 +164,6 @@ func (m *MetricStoragePG) Ping() error {
 }
 
 func (m *MetricStoragePG) setMetricTX(ctx context.Context, tx pgx.Tx, metric entities.Metrics) error {
-	//err := m.MetricStorage.UpdateMetricTX(ctx, tx, metric)
-	//if err == nil {
-	//	return nil
-	//}
-	//
-	//if err.Error() != storage.NotFound {
-	//	return err
-	//}
-	//
-	//err = m.MetricStorage.InsertMetricTX(ctx, tx, metric)
 	err := m.MetricStorage.UpsertMetricTX(ctx, tx, metric)
 	if err != nil {
 		return err

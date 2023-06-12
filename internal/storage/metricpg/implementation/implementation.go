@@ -3,7 +3,9 @@ package implementation
 import (
 	"context"
 	"errors"
+
 	"github.com/jackc/pgx/v4"
+	"github.com/lib/pq"
 	"metric-alert/internal/entities"
 	"metric-alert/internal/logger"
 	"metric-alert/internal/storage"
@@ -20,6 +22,7 @@ type MetricStorage interface {
 	UpdateMetricTX(ctx context.Context, tx pgx.Tx, metric entities.Metrics) error
 	GetMetricByIDTX(ctx context.Context, tx pgx.Tx, metricID string) (entities.Metrics, error)
 	GetMetricByID(ctx context.Context, metricID string) (entities.Metrics, error)
+	GetMetricsByIDs(ctx context.Context, metricIDs []string) ([]entities.Metrics, error)
 	GetAllMetric(ctx context.Context) ([]entities.Metrics, error)
 
 	Ping(ctx context.Context) error
@@ -157,6 +160,27 @@ func (m *MetricPG) GetMetricByID(ctx context.Context, metricID string) (entities
 	return metric, nil
 }
 
+func (m *MetricPG) GetMetricsByIDs(ctx context.Context, metricIDs []string) ([]entities.Metrics, error) {
+	sql := `SELECT id, metric_type, value, delta FROM metrics WHERE id=ANY($1);`
+	rows, err := m.DB.Query(ctx, sql, pq.Array(metricIDs))
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var metrics []entities.Metrics
+	for rows.Next() {
+		var metric entities.Metrics
+		err = rows.Scan(&metric.ID, &metric.MType, &metric.Value, &metric.Delta)
+		if err != nil {
+			return nil, err
+		}
+		metrics = append(metrics, metric)
+	}
+
+	return metrics, nil
+}
+
 func (m *MetricPG) GetAllMetric(ctx context.Context) ([]entities.Metrics, error) {
 	sql := `SELECT id, metric_type, value, delta FROM metrics;`
 	rows, err := m.DB.Query(ctx, sql)
@@ -168,7 +192,7 @@ func (m *MetricPG) GetAllMetric(ctx context.Context) ([]entities.Metrics, error)
 	var metrics []entities.Metrics
 	for rows.Next() {
 		var metric entities.Metrics
-		err := rows.Scan(&metric.ID, &metric.MType, &metric.Value, &metric.Delta)
+		err = rows.Scan(&metric.ID, &metric.MType, &metric.Value, &metric.Delta)
 		if err != nil {
 			return nil, err
 		}
