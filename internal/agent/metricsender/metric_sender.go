@@ -2,22 +2,30 @@ package metricsender
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"metric-alert/internal/agent/gatherer"
 	"net/http"
+	"syscall"
+	"time"
 
+	"metric-alert/internal/agent/gatherer"
 	"metric-alert/internal/compressor"
+	"metric-alert/internal/logger"
 )
 
+const numberOfAttempts = 3
+
 type MetricSender struct {
-	client    *http.Client
-	serverURL string
+	client            *http.Client
+	serverURL         string
+	attemptsIntervals []int
 }
 
 func NewMetricSender(serverURL string) *MetricSender {
 	return &MetricSender{
-		client:    &http.Client{},
-		serverURL: "http://" + serverURL,
+		client:            &http.Client{},
+		serverURL:         "http://" + serverURL,
+		attemptsIntervals: []int{1, 3, 5},
 	}
 }
 
@@ -37,13 +45,21 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
-	response, err := s.client.Do(req)
-	if err != nil {
-		return err
-	}
-	err = response.Body.Close()
-	if err != nil {
-		return err
+
+	for i := 0; i < numberOfAttempts; i++ {
+		_, err = s.client.Do(req)
+		if err != nil {
+			if errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNREFUSED) {
+				logger.Log.Warn().Interface("req", req).Err(err).Int("attempt", i+1).
+					Msg("unsuccessful attempt send request")
+
+				time.Sleep(time.Duration(s.attemptsIntervals[i]) * time.Second)
+
+				continue
+
+			}
+			return err
+		}
 	}
 
 	return nil
