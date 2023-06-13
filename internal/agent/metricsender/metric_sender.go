@@ -30,26 +30,34 @@ func NewMetricSender(serverURL string) *MetricSender {
 }
 
 func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
+	if len(metrics) == 0 {
+		logger.Log.Info().Msg("empty metrics")
+
+		return nil
+	}
+
 	data, err := json.Marshal(metrics)
 	if err != nil {
-		return err
+		return fmt.Errorf("json.Marshal :%w", err)
 	}
 	metricURL := fmt.Sprintf("%s/updates/", s.serverURL)
 	compressed, err := compressor.CompressData(data)
 	if err != nil {
-		return err
+		return fmt.Errorf("compressor.CompressData :%w", err)
 	}
 	req, err := http.NewRequest("POST", metricURL, compressed)
 	if err != nil {
-		return err
+		return fmt.Errorf("http.NewRequest :%w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
 
+	var resp *http.Response
 	for i := 0; i < numberOfAttempts; i++ {
-		_, err = s.client.Do(req)
+		resp, err = s.client.Do(req)
 		if err != nil {
-			if errors.Is(err, syscall.ECONNRESET) || errors.Is(err, syscall.ECONNREFUSED) {
+			if errors.Is(err, syscall.ECONNRESET) ||
+				errors.Is(err, syscall.ECONNREFUSED) {
 				logger.Log.Warn().Interface("req", req).Err(err).Int("attempt", i+1).
 					Msg("unsuccessful attempt send request")
 
@@ -58,8 +66,12 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 				continue
 
 			}
-			return err
+			return fmt.Errorf("client.Do :%w", err)
 		}
+	}
+	err = resp.Body.Close()
+	if err != nil {
+		return fmt.Errorf("resp.Body.Close :%w", err)
 	}
 
 	return nil

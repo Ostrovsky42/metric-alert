@@ -23,6 +23,7 @@ type MetricRepo interface {
 var _ MetricRepo = &Repository{}
 
 type Repository struct {
+	MetricRepo
 	*memcache.MemCache
 	*metricpg.MetricStoragePG
 	*filestorage.FileRecorder
@@ -36,12 +37,13 @@ func InitRepo(fileStoragePath, dataBaseDSN string, storeIntervalSec int, restore
 			return nil, err
 		}
 		repo.MetricStoragePG = metricpg.NewMetricDB(pg)
+		repo.MetricRepo = repo.MetricStoragePG
 
 		return &repo, nil
 	}
 
-	repo.MemCache = memcache.NewMemCache()
-	fileStorage, err := filestorage.NewFileRecorder(fileStoragePath, repo.MemCache)
+	memCache := memcache.NewMemCache()
+	fileStorage, err := filestorage.NewFileRecorder(fileStoragePath, memCache)
 	if err != nil {
 		return nil, err
 	}
@@ -66,51 +68,27 @@ func (r *Repository) StartRecording(updateInterval int) {
 }
 
 func (r *Repository) SetMetric(metric entities.Metrics) (entities.Metrics, error) {
-	if r.MetricStoragePG != nil {
-		return r.MetricStoragePG.SetMetric(metric)
-	}
-
-	return r.MemCache.SetMetric(metric)
+	return r.MetricRepo.SetMetric(metric)
 }
 
 func (r *Repository) SetMetrics(metric []entities.Metrics) error {
-	if r.MetricStoragePG != nil {
-		return r.MetricStoragePG.SetMetrics(metric)
-	}
-
-	return r.MemCache.SetMetrics(metric)
+	return r.MetricRepo.SetMetrics(metric)
 }
 
 func (r *Repository) GetMetric(metricID string) (entities.Metrics, error) {
-	if r.MetricStoragePG != nil {
-		return r.MetricStoragePG.GetMetric(metricID)
-	}
-
-	return r.MemCache.GetMetric(metricID)
+	return r.MetricRepo.GetMetric(metricID)
 }
 
 func (r *Repository) GetMetricsByIDs(IDs []string) ([]entities.Metrics, error) {
-	if r.MetricStoragePG != nil {
-		return r.MetricStoragePG.GetMetricsByIDs(IDs)
-	}
-
-	return r.MemCache.GetMetricsByIDs(IDs)
+	return r.MetricRepo.GetMetricsByIDs(IDs)
 }
 
 func (r *Repository) GetAllMetric() ([]entities.Metrics, error) {
-	if r.MetricStoragePG != nil {
-		return r.MetricStoragePG.GetAllMetric()
-	}
-
-	return r.MemCache.GetAllMetric()
+	return r.MetricRepo.GetAllMetric()
 }
 
 func (r *Repository) Ping() error {
-	if r.MetricStoragePG != nil {
-		return r.MetricStoragePG.Ping()
-	}
-
-	return r.MemCache.Ping()
+	return r.MetricRepo.Ping()
 }
 
 func (r *Repository) Close() {
