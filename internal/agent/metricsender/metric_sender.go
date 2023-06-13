@@ -68,10 +68,11 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 			}
 			return fmt.Errorf("client.Do :%w", err)
 		}
-	}
-	err = resp.Body.Close()
-	if err != nil {
-		return fmt.Errorf("resp.Body.Close :%w", err)
+
+		err = resp.Body.Close()
+		if err != nil {
+			return fmt.Errorf("resp.Body.Close :%w", err)
+		}
 	}
 
 	return nil
