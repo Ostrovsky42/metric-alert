@@ -30,7 +30,7 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	receivedMetric, err := m.metricStorage.GetMetric(metric.ID)
+	receivedMetric, err := m.metricStorage.GetMetric(r.Context(), metric.ID)
 	if err != nil {
 		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
 		if err.Error() == storage.NotFound {
@@ -70,7 +70,7 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	receivedMetric, err := m.metricStorage.GetMetric(metric.ID)
+	receivedMetric, err := m.metricStorage.GetMetric(r.Context(), metric.ID)
 	if err != nil {
 		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
 		if err.Error() == storage.NotFound {
@@ -83,13 +83,13 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sendOK(w, receivedMetric)
+	sendOK(w, *receivedMetric)
 }
 
 func (m MetricAlerts) InfoPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	metrics, err := m.metricStorage.GetAllMetric()
+	metrics, err := m.metricStorage.GetAllMetric(r.Context())
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("error get metrics")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -115,7 +115,7 @@ func sendOK(w http.ResponseWriter, metric entities.Metrics) {
 }
 
 func (m MetricAlerts) PingDB(w http.ResponseWriter, r *http.Request) {
-	if err := m.metricStorage.Ping(); err != nil {
+	if err := m.metricStorage.Ping(r.Context()); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 
 		return

@@ -20,8 +20,8 @@ type MetricStorage interface {
 	UpsertMetricTX(ctx context.Context, tx pgx.Tx, metric entities.Metrics) error
 	InsertMetricTX(ctx context.Context, tx pgx.Tx, metric entities.Metrics) error
 	UpdateMetricTX(ctx context.Context, tx pgx.Tx, metric entities.Metrics) error
-	GetMetricByIDTX(ctx context.Context, tx pgx.Tx, metricID string) (entities.Metrics, error)
-	GetMetricByID(ctx context.Context, metricID string) (entities.Metrics, error)
+	GetMetricByIDTX(ctx context.Context, tx pgx.Tx, metricID string) (*entities.Metrics, error)
+	GetMetricByID(ctx context.Context, metricID string) (*entities.Metrics, error)
 	GetMetricsByIDs(ctx context.Context, metricIDs []string) ([]entities.Metrics, error)
 	GetAllMetric(ctx context.Context) ([]entities.Metrics, error)
 
@@ -117,7 +117,7 @@ func (m *MetricPG) UpsertMetricTX(ctx context.Context, tx pgx.Tx, metric entitie
 	return nil
 }
 
-func (m *MetricPG) GetMetricByIDTX(ctx context.Context, tx pgx.Tx, metricID string) (entities.Metrics, error) {
+func (m *MetricPG) GetMetricByIDTX(ctx context.Context, tx pgx.Tx, metricID string) (*entities.Metrics, error) {
 	sql := `SELECT id, metric_type, value, delta FROM metrics WHERE id = $1;`
 	var metric entities.Metrics
 
@@ -130,16 +130,16 @@ func (m *MetricPG) GetMetricByIDTX(ctx context.Context, tx pgx.Tx, metricID stri
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entities.Metrics{}, errors.New(storage.NotFound)
+			return nil, errors.New(storage.NotFound)
 		}
 
-		return entities.Metrics{}, err
+		return nil, err
 	}
 
-	return metric, nil
+	return &metric, nil
 }
 
-func (m *MetricPG) GetMetricByID(ctx context.Context, metricID string) (entities.Metrics, error) {
+func (m *MetricPG) GetMetricByID(ctx context.Context, metricID string) (*entities.Metrics, error) {
 	sql := `SELECT id, metric_type, value, delta FROM metrics WHERE id = $1;`
 	var metric entities.Metrics
 
@@ -151,13 +151,13 @@ func (m *MetricPG) GetMetricByID(ctx context.Context, metricID string) (entities
 	)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return entities.Metrics{}, errors.New(storage.NotFound)
+			return nil, errors.New(storage.NotFound)
 		}
 
-		return entities.Metrics{}, err
+		return nil, err
 	}
 
-	return metric, nil
+	return &metric, nil
 }
 
 func (m *MetricPG) GetMetricsByIDs(ctx context.Context, metricIDs []string) ([]entities.Metrics, error) {

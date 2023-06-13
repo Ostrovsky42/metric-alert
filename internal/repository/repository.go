@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"time"
 
 	"metric-alert/internal/entities"
@@ -11,25 +12,23 @@ import (
 )
 
 type MetricRepo interface {
-	SetMetric(metric entities.Metrics) (entities.Metrics, error)
-	SetMetrics(metric []entities.Metrics) error
-	GetMetric(metricID string) (entities.Metrics, error)
-	GetAllMetric() ([]entities.Metrics, error)
-	GetMetricsByIDs(IDs []string) ([]entities.Metrics, error)
+	SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error)
+	SetMetrics(ctx context.Context, metric []entities.Metrics) error
+	GetMetric(ctx context.Context, metricID string) (*entities.Metrics, error)
+	GetAllMetric(ctx context.Context) ([]entities.Metrics, error)
+	GetMetricsByIDs(ctx context.Context, IDs []string) ([]entities.Metrics, error)
 
-	Ping() error
+	Ping(ctx context.Context) error
+	Close()
 }
 
-var _ MetricRepo = &Repository{}
-
 type Repository struct {
-	MetricRepo
 	*memcache.MemCache
 	*metricpg.MetricStoragePG
 	*filestorage.FileRecorder
 }
 
-func InitRepo(fileStoragePath, dataBaseDSN string, storeIntervalSec int, restore bool) (*Repository, error) {
+func InitRepo(fileStoragePath, dataBaseDSN string, storeIntervalSec int, restore bool) (MetricRepo, error) {
 	var repo Repository
 	if dataBaseDSN != "" {
 		pg, err := db.NewPostgresDB(dataBaseDSN)
@@ -37,15 +36,13 @@ func InitRepo(fileStoragePath, dataBaseDSN string, storeIntervalSec int, restore
 			return nil, err
 		}
 		repo.MetricStoragePG = metricpg.NewMetricDB(pg)
-		repo.MetricRepo = repo.MetricStoragePG
 
-		return &repo, nil
+		return repo.MetricStoragePG, nil
 	}
 
-	memCache := memcache.NewMemCache()
-	repo.MetricRepo = memCache
+	repo.MemCache = memcache.NewMemCache()
 
-	fileStorage, err := filestorage.NewFileRecorder(fileStoragePath, memCache)
+	fileStorage, err := filestorage.NewFileRecorder(fileStoragePath, repo.MemCache)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +54,7 @@ func InitRepo(fileStoragePath, dataBaseDSN string, storeIntervalSec int, restore
 
 	go repo.StartRecording(storeIntervalSec)
 
-	return &repo, nil
+	return repo.MemCache, nil
 }
 
 func (r *Repository) StartRecording(updateInterval int) {
@@ -67,30 +64,6 @@ func (r *Repository) StartRecording(updateInterval int) {
 		time.Sleep(interval)
 		r.FileRecorder.RecordMetrics()
 	}
-}
-
-func (r *Repository) SetMetric(metric entities.Metrics) (entities.Metrics, error) {
-	return r.MetricRepo.SetMetric(metric)
-}
-
-func (r *Repository) SetMetrics(metric []entities.Metrics) error {
-	return r.MetricRepo.SetMetrics(metric)
-}
-
-func (r *Repository) GetMetric(metricID string) (entities.Metrics, error) {
-	return r.MetricRepo.GetMetric(metricID)
-}
-
-func (r *Repository) GetMetricsByIDs(IDs []string) ([]entities.Metrics, error) {
-	return r.MetricRepo.GetMetricsByIDs(IDs)
-}
-
-func (r *Repository) GetAllMetric() ([]entities.Metrics, error) {
-	return r.MetricRepo.GetAllMetric()
-}
-
-func (r *Repository) Ping() error {
-	return r.MetricRepo.Ping()
 }
 
 func (r *Repository) Close() {

@@ -1,6 +1,7 @@
 package memcache
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -13,13 +14,14 @@ type MemCache struct {
 }
 
 type MetricCache interface {
-	SetMetric(metric entities.Metrics) (entities.Metrics, error)
-	SetMetrics(metric []entities.Metrics) error
-	GetMetric(metricID string) (entities.Metrics, error)
-	GetMetricsByIDs(IDs []string) ([]entities.Metrics, error)
-	GetAllMetric() ([]entities.Metrics, error)
+	SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error)
+	SetMetrics(ctx context.Context, metric []entities.Metrics) error
+	GetMetric(ctx context.Context, metricID string) (*entities.Metrics, error)
+	GetAllMetric(ctx context.Context) ([]entities.Metrics, error)
+	GetMetricsByIDs(ctx context.Context, IDs []string) ([]entities.Metrics, error)
 
-	Ping() error
+	Ping(ctx context.Context) error
+	Close()
 }
 
 var _ MetricCache = &MemCache{}
@@ -28,7 +30,7 @@ func NewMemCache() *MemCache {
 	return &MemCache{storage: make(map[string]entities.Metrics)}
 }
 
-func (m *MemCache) SetMetric(metric entities.Metrics) (entities.Metrics, error) {
+func (m *MemCache) SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error) {
 	if metric.MType == entities.Gauge {
 		m.storage[metric.ID] = metric
 	} else {
@@ -40,19 +42,19 @@ func (m *MemCache) SetMetric(metric entities.Metrics) (entities.Metrics, error) 
 
 		m.storage[metric.ID] = metric
 	}
-	return metric, nil
+	return &metric, nil
 }
 
-func (m *MemCache) GetMetric(metricID string) (entities.Metrics, error) {
+func (m *MemCache) GetMetric(ctx context.Context, metricID string) (*entities.Metrics, error) {
 	metric, ok := m.storage[metricID]
 	if ok {
-		return metric, nil
+		return &metric, nil
 	}
 
-	return metric, errors.New(storage.NotFound)
+	return nil, errors.New(storage.NotFound)
 }
 
-func (m *MemCache) GetMetricsByIDs(IDs []string) ([]entities.Metrics, error) {
+func (m *MemCache) GetMetricsByIDs(ctx context.Context, IDs []string) ([]entities.Metrics, error) {
 	var metrics []entities.Metrics
 	IDs = storage.RemoveDuplicatesIDs(IDs)
 	for _, id := range IDs {
@@ -67,7 +69,7 @@ func (m *MemCache) GetMetricsByIDs(IDs []string) ([]entities.Metrics, error) {
 	return metrics, nil
 }
 
-func (m *MemCache) GetAllMetric() ([]entities.Metrics, error) {
+func (m *MemCache) GetAllMetric(ctx context.Context) ([]entities.Metrics, error) {
 	metrics := make([]entities.Metrics, 0, len(m.storage))
 
 	for _, metric := range m.storage {
@@ -79,14 +81,19 @@ func (m *MemCache) GetAllMetric() ([]entities.Metrics, error) {
 	return metrics, nil
 }
 
-func (m *MemCache) SetMetrics(metrics []entities.Metrics) error {
+func (m *MemCache) SetMetrics(ctx context.Context, metrics []entities.Metrics) error {
 	for _, metric := range metrics {
-		m.SetMetric(metric)
+		if _, err := m.SetMetric(ctx, metric); err != nil {
+			return err
+		}
 	}
 
 	return nil
 }
 
-func (m *MemCache) Ping() error {
+func (m *MemCache) Ping(ctx context.Context) error {
 	return nil
+}
+
+func (m *MemCache) Close() {
 }

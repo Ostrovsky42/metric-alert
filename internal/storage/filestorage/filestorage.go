@@ -1,12 +1,14 @@
 package filestorage
 
 import (
+	"context"
 	"encoding/json"
 	"io"
+	"os"
+
 	"metric-alert/internal/entities"
 	"metric-alert/internal/logger"
 	"metric-alert/internal/storage/memcache"
-	"os"
 )
 
 type FileRecorder struct {
@@ -38,11 +40,11 @@ func (f *FileRecorder) RestoreMetrics() {
 		logger.Log.Error().Err(err).Msg("err file Decoder")
 	}
 
-	f.metricCache.SetMetrics(metrics)
+	f.metricCache.SetMetrics(context.Background(), metrics)
 }
 
 func (f *FileRecorder) RecordMetrics() {
-	metrics, _ := f.metricCache.GetAllMetric()
+	metrics, _ := f.metricCache.GetAllMetric(context.Background())
 	if len(metrics) == 0 {
 		return
 	}
