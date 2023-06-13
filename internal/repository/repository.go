@@ -43,6 +43,8 @@ func InitRepo(fileStoragePath, dataBaseDSN string, storeIntervalSec int, restore
 	}
 
 	memCache := memcache.NewMemCache()
+	repo.MetricRepo = memCache
+
 	fileStorage, err := filestorage.NewFileRecorder(fileStoragePath, memCache)
 	if err != nil {
 		return nil, err
