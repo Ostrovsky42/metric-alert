@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"github.com/go-chi/chi"
 	"html/template"
-	"metric-alert/internal/logger"
 	"net/http"
 
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers/validator"
-	"metric-alert/internal/storage"
+	"metric-alert/internal/logger"
+	"metric-alert/internal/repository"
 )
 
 const (
@@ -19,14 +19,14 @@ const (
 )
 
 type MetricAlerts struct {
-	metricCache storage.MetricCache
-	tmp         *template.Template
+	metricStorage repository.MetricRepo
+	tmp           *template.Template
 }
 
-func NewMetric(metricStorage storage.MetricCache, tmp *template.Template) MetricAlerts {
+func NewMetric(metricStorage repository.MetricRepo, tmp *template.Template) MetricAlerts {
 	return MetricAlerts{
-		metricCache: metricStorage,
-		tmp:         tmp,
+		metricStorage: metricStorage,
+		tmp:           tmp,
 	}
 }
 
@@ -52,9 +52,15 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	metric = m.metricCache.SetMetric(metric)
+	updatedMetric, err := m.metricStorage.SetMetric(r.Context(), metric)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error set metric")
+		w.WriteHeader(http.StatusInternalServerError)
 
-	data, err := json.Marshal(metric)
+		return
+	}
+
+	data, err := json.Marshal(updatedMetric)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err encode data")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -65,6 +71,60 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Request) {
+	var metrics []entities.Metrics
+	err := json.NewDecoder(r.Body).Decode(&metrics)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err unmarshal body")
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+	err = validator.ValidateMetrics(metrics)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err validate metrics")
+		if err.Error() == "empty metric name" {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+
+		return
+	}
+	ctx := r.Context()
+	err = m.metricStorage.SetMetrics(ctx, metrics)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error set metrics")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	var updatedMetricIDs []string
+	for _, metric := range metrics {
+		updatedMetricIDs = append(updatedMetricIDs, metric.ID)
+	}
+
+	updatedMetric, err := m.metricStorage.GetMetricsByIDs(ctx, updatedMetricIDs)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error get metrics by ids")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	_, err = json.Marshal(updatedMetric)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("err encode data")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +147,13 @@ func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.metricCache.SetMetric(metric)
+	_, err = m.metricStorage.SetMetric(r.Context(), metric)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error set metric")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
 }

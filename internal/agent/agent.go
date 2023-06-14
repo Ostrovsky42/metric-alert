@@ -26,7 +26,24 @@ func NewAgent(reportInterval, pollInterval int, serverURL string) *Agent {
 func (a *Agent) Run() {
 	go a.gatherer.GatherMetrics()
 	//go a.sendReport()
-	a.sendReportJSON()
+	a.sendPackReportJSON()
+}
+
+func (a *Agent) sendPackReportJSON() {
+	for {
+		var metrics []gatherer.Metrics
+		time.Sleep(a.reportInterval)
+		for _, metric := range a.gatherer.Metrics {
+			metrics = append(metrics, metric)
+		}
+		if len(metrics) == 0 {
+			continue
+		}
+
+		if err := a.sender.SendMetricPackJSON(metrics); err != nil {
+			logger.Log.Error().Err(err).Msg("err SendMetricPackJSON")
+		}
+	}
 }
 
 func (a *Agent) sendReportJSON() {

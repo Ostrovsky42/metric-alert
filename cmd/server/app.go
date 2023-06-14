@@ -2,34 +2,31 @@ package main
 
 import (
 	"html/template"
-	"metric-alert/internal/logger"
 	"net/http"
-	"time"
 
 	"metric-alert/internal/handlers"
-	"metric-alert/internal/storage"
+	"metric-alert/internal/logger"
+	"metric-alert/internal/repository"
 )
 
 const templatePath = "internal/html/templates/info_page.html"
 
 type Application struct {
-	metric      handlers.MetricAlerts
-	fileStorage *storage.FileRecorder
-	serverHost  string
+	metric     handlers.MetricAlerts
+	storage    repository.MetricRepo
+	serverHost string
 }
 
 func NewApp(cfg Config) Application {
-	memStorage := storage.NewMemStore()
-	fileStorage, err := storage.NewFileRecorder(cfg.FileStoragePath, memStorage)
+	memRepo, err := repository.InitRepo(
+		cfg.FileStoragePath,
+		cfg.DataBaseDSN,
+		cfg.StoreIntervalSec,
+		cfg.Restore,
+	)
 	if err != nil {
-		logger.Log.Fatal().Err(err).Msg("Error create fileRecorder")
+		logger.Log.Fatal().Err(err).Msg("failed init storage")
 	}
-
-	if cfg.Restore {
-		fileStorage.RestoreMetrics()
-	}
-
-	go StartRecording(fileStorage, cfg.StoreIntervalSec)
 
 	tmp, err := template.ParseFiles(templatePath)
 	if err != nil {
@@ -37,9 +34,9 @@ func NewApp(cfg Config) Application {
 	}
 
 	return Application{
-		metric:      handlers.NewMetric(memStorage, tmp),
-		fileStorage: fileStorage,
-		serverHost:  cfg.ServerHost,
+		metric:     handlers.NewMetric(memRepo, tmp),
+		storage:    memRepo,
+		serverHost: cfg.ServerHost,
 	}
 }
 
@@ -50,15 +47,8 @@ func (a Application) Run() {
 	}
 }
 
-func StartRecording(fileStorage *storage.FileRecorder, updateInterval int) {
-	interval := time.Duration(updateInterval) * time.Second
-	ticker := time.NewTicker(interval)
-	defer ticker.Stop()
-
-	for {
-		time.Sleep(interval)
-		fileStorage.RecordMetrics()
-	}
+func (a Application) Close() {
+	a.storage.Close()
 }
 
 /*

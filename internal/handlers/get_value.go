@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi"
+	"metric-alert/internal/storage"
 	"net/http"
 
 	"metric-alert/internal/entities"
@@ -29,15 +30,20 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := m.metricCache.GetMetric(metric.ID)
-	if !ok {
-		logger.Log.Warn().Interface("metric", metric).Msg("not found metric")
-		w.WriteHeader(http.StatusNotFound)
+	receivedMetric, err := m.metricStorage.GetMetric(r.Context(), metric.ID)
+	if err != nil {
+		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
+		if err.Error() == storage.NotFound {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 
 		return
 	}
 
-	data, err := json.Marshal(metric)
+	data, err := json.Marshal(receivedMetric)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err encode data")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -64,20 +70,34 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	metric, ok := m.metricCache.GetMetric(metric.ID)
-	if !ok {
-		w.WriteHeader(http.StatusNotFound)
+	receivedMetric, err := m.metricStorage.GetMetric(r.Context(), metric.ID)
+	if err != nil {
+		logger.Log.Warn().Interface("metric", metric).Msg("error get metric")
+		if err.Error() == storage.NotFound {
+			w.WriteHeader(http.StatusNotFound)
+
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 
 		return
 	}
 
-	sendOK(w, metric)
+	sendOK(w, *receivedMetric)
 }
 
 func (m MetricAlerts) InfoPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 
-	if err := m.tmp.Execute(w, m.metricCache.GetAllMetric()); err != nil {
+	metrics, err := m.metricStorage.GetAllMetric(r.Context())
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("error get metrics")
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	if err = m.tmp.Execute(w, metrics); err != nil {
 		logger.Log.Error().Err(err).Msg("err Execute template")
 		w.WriteHeader(http.StatusInternalServerError)
 	}
@@ -92,4 +112,14 @@ func sendOK(w http.ResponseWriter, metric entities.Metrics) {
 	}
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, "%v", *metric.Delta)
+}
+
+func (m MetricAlerts) PingDB(w http.ResponseWriter, r *http.Request) {
+	if err := m.metricStorage.Ping(r.Context()); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

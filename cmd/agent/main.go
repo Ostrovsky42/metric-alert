@@ -6,6 +6,8 @@ import (
 )
 
 func main() {
+	logger.InitLogger()
+
 	cfg, err := getConfig()
 	if err != nil {
 		logger.Log.Fatal().Msg("err get config: " + err.Error())
