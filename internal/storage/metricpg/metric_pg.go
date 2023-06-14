@@ -151,7 +151,7 @@ func (m *MetricStoragePG) GetMetricsByIDs(ctx context.Context, IDs []string) ([]
 }
 
 func (m *MetricStoragePG) GetAllMetric(ctx context.Context) ([]entities.Metrics, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), DefaultQueryTimeout)
+	ctx, cancel := context.WithTimeout(ctx, DefaultQueryTimeout)
 	defer cancel()
 
 	return m.MetricStorage.GetAllMetric(ctx)
