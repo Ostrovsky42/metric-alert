@@ -2,12 +2,14 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/go-chi/chi"
 	"metric-alert/internal/entities"
 	"metric-alert/internal/handlers"
 	"metric-alert/internal/repository"
+	"metric-alert/internal/storage"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -38,8 +40,8 @@ func TestUpdateMetricValid(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	finelyMetric, err := mockStorage.GetMetric(testMetric.ID)
-	assert.Equal(t, testMetric, finelyMetric)
+	finelyMetric, err := mockStorage.GetMetric(context.Background(), testMetric.ID)
+	assert.Equal(t, &testMetric, finelyMetric)
 	assert.Equal(t, nil, err)
 }
 
@@ -64,9 +66,8 @@ func TestUpdateMetricInvalid(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 
-	finelyMetric, err := mockStorage.GetMetric(testMetric.ID)
-	assert.Equal(t, finelyMetric, entities.Metrics{})
-	assert.Equal(t, errors.New("not found metric"), err)
+	_, err := mockStorage.GetMetric(context.Background(), testMetric.ID)
+	assert.Equal(t, errors.New(storage.NotFound), err)
 }
 
 func TestUpdateMetricsValid(t *testing.T) {
@@ -100,7 +101,7 @@ func TestUpdateMetricsValid(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rr.Code)
 
-	finelyMetric, err := mockStorage.GetMetricsByIDs([]string{testMetric[0].ID, testMetric[1].ID})
+	finelyMetric, err := mockStorage.GetMetricsByIDs(context.Background(), []string{testMetric[0].ID, testMetric[1].ID})
 	assert.Equal(t, testMetric, finelyMetric)
 	assert.Equal(t, nil, err)
 }
