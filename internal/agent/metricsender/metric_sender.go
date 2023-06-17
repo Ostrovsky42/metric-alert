@@ -137,9 +137,6 @@ func (s *MetricSender) signRequest(data []byte, req *http.Request) {
 
 	hash := s.hashBuilder.GetHash(data)
 	req.Header.Set("HashSHA256", hash)
-}
 
-//func (s *MetricSender) signRequest(req *http.Request) {
-//	hash := s.hashBuilder.GetHash(req.Body)
-//	req.Header.Set("HashSHA256", string(hash))
-//}
+	logger.Log.Debug().Str("hash", hash).Msg("Set Header HashSHA256")
+}

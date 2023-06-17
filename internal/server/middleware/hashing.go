@@ -3,8 +3,10 @@ package middleware
 import (
 	"bytes"
 	"io"
-	"metric-alert/internal/hasher"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
+	"metric-alert/internal/hasher"
 )
 
 type HashMiddleware struct {
@@ -31,6 +33,7 @@ func (h HashMiddleware) Hash(next http.Handler) http.Handler {
 		}
 		calculatedHash := h.hb.GetHash(data)
 		if receivedHash != calculatedHash {
+			log.Logger.Debug().Str("HashSHA256", receivedHash).Msg("Header from agent")
 			http.Error(w, "Invalid hash", http.StatusBadRequest)
 			return
 		}

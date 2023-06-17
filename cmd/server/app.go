@@ -42,6 +42,7 @@ func NewApp(cfg Config) Application {
 }
 
 func (a Application) Run() {
+	a.signKey = ""
 	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric, a.signKey))
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error start serve")

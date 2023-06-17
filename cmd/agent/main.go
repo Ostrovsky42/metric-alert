@@ -14,7 +14,7 @@ func main() {
 	}
 
 	a := agent.NewAgent(cfg.ReportIntervalSec, cfg.PollIntervalSec, cfg.ServerHost, cfg.SignKey)
-	logger.Log.Info().Msg("agent will send reports to " + cfg.ServerHost)
+	logger.Log.Info().Interface("cfg", cfg).Msg("agent will send reports to " + cfg.ServerHost)
 
 	a.Run()
 }
