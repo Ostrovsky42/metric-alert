@@ -3,10 +3,9 @@ package agent
 import (
 	"metric-alert/internal/agent/gatherer"
 	"metric-alert/internal/agent/metricsender"
-	"metric-alert/internal/logger"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/logger"
 	"time"
-
-	"metric-alert/internal/entities"
 )
 
 type Agent struct {
@@ -15,9 +14,9 @@ type Agent struct {
 	reportInterval time.Duration
 }
 
-func NewAgent(reportInterval, pollInterval int, serverURL string) *Agent {
+func NewAgent(reportInterval, pollInterval int, serverURL, signKey string) *Agent {
 	return &Agent{
-		sender:         metricsender.NewMetricSender(serverURL),
+		sender:         metricsender.NewMetricSender(serverURL, signKey),
 		gatherer:       gatherer.NewGatherer(pollInterval),
 		reportInterval: time.Duration(reportInterval) * time.Second,
 	}

@@ -1,11 +1,12 @@
-package midleware
+package middleware
 
 import (
 	"compress/gzip"
 	"io"
-	"metric-alert/internal/logger"
 	"net/http"
 	"strings"
+
+	"metric-alert/internal/server/logger"
 )
 
 type ZipMiddleware struct {

@@ -4,11 +4,11 @@ import (
 	"context"
 	"time"
 
-	"metric-alert/internal/entities"
-	"metric-alert/internal/storage/db"
-	"metric-alert/internal/storage/filestorage"
-	"metric-alert/internal/storage/memcache"
-	"metric-alert/internal/storage/metricpg"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/storage/db"
+	"metric-alert/internal/server/storage/filestorage"
+	"metric-alert/internal/server/storage/memcache"
+	"metric-alert/internal/server/storage/metricpg"
 )
 
 type MetricRepo interface {

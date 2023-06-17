@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"metric-alert/internal/entities"
-	"metric-alert/internal/storage"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/storage"
 )
 
 type MemCache struct {

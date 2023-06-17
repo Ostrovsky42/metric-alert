@@ -41,7 +41,7 @@ func TestSendMetric(t *testing.T) {
 		return
 	}
 
-	agent := NewAgent(reportInterval, pollInterval, testURL.Host)
+	agent := NewAgent(reportInterval, pollInterval, testURL.Host, "s")
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

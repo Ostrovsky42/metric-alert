@@ -6,10 +6,10 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
-	"metric-alert/internal/entities"
-	"metric-alert/internal/logger"
-	"metric-alert/internal/storage"
-	"metric-alert/internal/storage/db"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/logger"
+	"metric-alert/internal/server/storage"
+	"metric-alert/internal/server/storage/db"
 )
 
 type MetricStorage interface {

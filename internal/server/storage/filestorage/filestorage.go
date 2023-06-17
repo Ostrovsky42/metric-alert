@@ -6,9 +6,9 @@ import (
 	"io"
 	"os"
 
-	"metric-alert/internal/entities"
-	"metric-alert/internal/logger"
-	"metric-alert/internal/storage/memcache"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/logger"
+	"metric-alert/internal/server/storage/memcache"
 )
 
 type FileRecorder struct {

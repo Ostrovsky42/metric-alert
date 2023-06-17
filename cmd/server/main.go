@@ -1,7 +1,7 @@
 package main
 
 import (
-	"metric-alert/internal/logger"
+	"metric-alert/internal/server/logger"
 )
 
 func main() {
@@ -10,7 +10,7 @@ func main() {
 	cfg := getConfig()
 	a := NewApp(cfg)
 	defer a.Close()
-	logger.Log.Info().Msg("server start on " + cfg.ServerHost)
+	logger.Log.Info().Interface("cfg", cfg).Msg("server start on " + cfg.ServerHost)
 
 	a.Run()
 }

@@ -3,10 +3,10 @@ package memcache
 import (
 	"context"
 	"errors"
-	"github.com/stretchr/testify/assert"
 	"testing"
 
-	"metric-alert/internal/entities"
+	"github.com/stretchr/testify/assert"
+	"metric-alert/internal/server/entities"
 )
 
 func floatPointer(val float64) *float64 {
