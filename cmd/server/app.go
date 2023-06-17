@@ -2,14 +2,13 @@ package main
 
 import (
 	"html/template"
+	"metric-alert/internal/server/handlers"
+	"metric-alert/internal/server/logger"
+	"metric-alert/internal/server/repository"
 	"net/http"
-
-	"metric-alert/internal/handlers"
-	"metric-alert/internal/logger"
-	"metric-alert/internal/repository"
 )
 
-const templatePath = "internal/html/templates/info_page.html"
+const templatePath = "internal/server/html/templates/info_page.html"
 
 type Application struct {
 	metric     handlers.MetricAlerts

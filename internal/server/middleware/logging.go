@@ -1,9 +1,10 @@
-package midleware
+package middleware
 
 import (
-	"metric-alert/internal/logger"
 	"net/http"
 	"time"
+
+	"metric-alert/internal/server/logger"
 )
 
 func WithLogging(h http.Handler) http.Handler {

@@ -1,8 +1,9 @@
 package validator
 
 import (
-	"metric-alert/internal/entities"
 	"strconv"
+
+	"metric-alert/internal/server/entities"
 )
 
 func ValidateUpdateWithBody(metric entities.Metrics) error {

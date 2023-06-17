@@ -2,7 +2,7 @@ package main
 
 import (
 	"metric-alert/internal/agent"
-	"metric-alert/internal/logger"
+	"metric-alert/internal/server/logger"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 		logger.Log.Fatal().Msg("err get config: " + err.Error())
 	}
 
-	a := agent.NewAgent(cfg.ReportIntervalSec, cfg.PollIntervalSec, cfg.ServerHost)
+	a := agent.NewAgent(cfg.ReportIntervalSec, cfg.PollIntervalSec, cfg.ServerHost, cfg.SignKey)
 	logger.Log.Info().Msg("agent will send reports to " + cfg.ServerHost)
 
 	a.Run()

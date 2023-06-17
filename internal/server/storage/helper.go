@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"metric-alert/internal/entities"
 	"sort"
+
+	"metric-alert/internal/server/entities"
 )
 
 const NotFound = "not found metric"

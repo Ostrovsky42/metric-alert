@@ -3,13 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/go-chi/chi"
-	"metric-alert/internal/storage"
 	"net/http"
 
-	"metric-alert/internal/entities"
-	"metric-alert/internal/handlers/validator"
-	"metric-alert/internal/logger"
+	"github.com/go-chi/chi"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/handlers/validator"
+	"metric-alert/internal/server/logger"
+	"metric-alert/internal/server/storage"
 )
 
 func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {

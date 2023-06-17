@@ -2,17 +2,19 @@ package main
 
 import (
 	"compress/gzip"
+
 	"github.com/go-chi/chi"
-	"metric-alert/internal/handlers"
-	"metric-alert/internal/midleware"
+	"metric-alert/internal/server/handlers"
+	"metric-alert/internal/server/middleware"
 )
 
 func NewRoutes(metric handlers.MetricAlerts) *chi.Mux {
 	r := chi.NewRouter()
 
-	zipMW := midleware.NewZipMiddleware(gzip.BestSpeed)
+	zipMW := middleware.NewZipMiddleware(gzip.BestSpeed)
+	hashMW := middleware.NewHashMW("krot")
 
-	r.Use(midleware.WithLogging, zipMW.UnZip, zipMW.Zip)
+	r.Use(middleware.WithLogging, zipMW.UnZip, hashMW.Hash, zipMW.Zip)
 
 	r.Post(`/update/`, metric.UpdateMetricWithBody)
 	r.Post(`/updates/`, metric.UpdateMetricsWithBody)

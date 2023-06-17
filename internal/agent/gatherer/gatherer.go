@@ -5,7 +5,7 @@ import (
 	"runtime"
 	"time"
 
-	"metric-alert/internal/entities"
+	"metric-alert/internal/server/entities"
 )
 
 type Gatherer struct {
