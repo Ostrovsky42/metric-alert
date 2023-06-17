@@ -14,6 +14,7 @@ type Application struct {
 	metric     handlers.MetricAlerts
 	storage    repository.MetricRepo
 	serverHost string
+	signKey    string
 }
 
 func NewApp(cfg Config) Application {
@@ -36,11 +37,12 @@ func NewApp(cfg Config) Application {
 		metric:     handlers.NewMetric(memRepo, tmp),
 		storage:    memRepo,
 		serverHost: cfg.ServerHost,
+		signKey:    cfg.SignKey,
 	}
 }
 
 func (a Application) Run() {
-	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric))
+	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric, a.signKey))
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error start serve")
 	}

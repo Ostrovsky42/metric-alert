@@ -8,11 +8,11 @@ import (
 	"metric-alert/internal/server/middleware"
 )
 
-func NewRoutes(metric handlers.MetricAlerts) *chi.Mux {
+func NewRoutes(metric handlers.MetricAlerts, signKey string) *chi.Mux {
 	r := chi.NewRouter()
 
 	zipMW := middleware.NewZipMiddleware(gzip.BestSpeed)
-	hashMW := middleware.NewHashMW("krot")
+	hashMW := middleware.NewHashMW(signKey)
 
 	r.Use(middleware.WithLogging, zipMW.UnZip, hashMW.Hash, zipMW.Zip)
 
