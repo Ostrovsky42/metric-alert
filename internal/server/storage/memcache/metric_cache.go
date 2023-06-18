@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/storage"
 )
 
 type MemCache struct {
+	mu      sync.RWMutex
 	storage map[string]entities.Metrics
 }
 
@@ -31,6 +33,9 @@ func NewMemCache() *MemCache {
 }
 
 func (m *MemCache) SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	if metric.MType == entities.Gauge {
 		m.storage[metric.ID] = metric
 	} else {
@@ -46,6 +51,9 @@ func (m *MemCache) SetMetric(ctx context.Context, metric entities.Metrics) (*ent
 }
 
 func (m *MemCache) GetMetric(ctx context.Context, metricID string) (*entities.Metrics, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	metric, ok := m.storage[metricID]
 	if ok {
 		return &metric, nil
@@ -57,6 +65,10 @@ func (m *MemCache) GetMetric(ctx context.Context, metricID string) (*entities.Me
 func (m *MemCache) GetMetricsByIDs(ctx context.Context, IDs []string) ([]entities.Metrics, error) {
 	var metrics []entities.Metrics
 	IDs = storage.RemoveDuplicatesIDs(IDs)
+
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	for _, id := range IDs {
 		metric, ok := m.storage[id]
 		if !ok {
@@ -71,6 +83,8 @@ func (m *MemCache) GetMetricsByIDs(ctx context.Context, IDs []string) ([]entitie
 
 func (m *MemCache) GetAllMetric(ctx context.Context) ([]entities.Metrics, error) {
 	metrics := make([]entities.Metrics, 0, len(m.storage))
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 
 	for _, metric := range m.storage {
 		metrics = append(metrics, metric)

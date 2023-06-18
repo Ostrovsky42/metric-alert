@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"metric-alert/internal/server/config"
 	"metric-alert/internal/server/handlers"
 	"metric-alert/internal/server/logger"
 	"metric-alert/internal/server/repository"
@@ -17,7 +18,7 @@ type Application struct {
 	signKey    string
 }
 
-func NewApp(cfg Config) Application {
+func NewApp(cfg config.Config) Application {
 	memRepo, err := repository.InitRepo(
 		cfg.FileStoragePath,
 		cfg.DataBaseDSN,

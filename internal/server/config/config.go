@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"flag"
@@ -16,11 +16,11 @@ type Config struct {
 	SignKey          string `env:"KEY"`
 }
 
-func getConfig() Config {
+func GetConfig() Config {
 	cfg := parseFlags()
 	err := env.Parse(&cfg)
 	if err != nil {
-		logger.Log.Fatal().Msg("err parse environment variable to config")
+		logger.Log.Fatal().Msg("err parse environment variable to server config")
 	}
 
 	return cfg

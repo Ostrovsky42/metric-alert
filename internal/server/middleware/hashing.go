@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/rs/zerolog/log"
 	"metric-alert/internal/hasher"
 )
 
@@ -33,7 +32,7 @@ func (h HashMiddleware) Hash(next http.Handler) http.Handler {
 		}
 		calculatedHash := h.hb.GetHash(data)
 		if receivedHash != calculatedHash {
-			log.Logger.Debug().Str("HashSHA256", receivedHash).Msg("Header from agent")
+			//	logger.Log.Debug().Str("HashSHA256", receivedHash).Msg("Header from agent")
 			http.Error(w, "Invalid hash", http.StatusBadRequest)
 			return
 		}
