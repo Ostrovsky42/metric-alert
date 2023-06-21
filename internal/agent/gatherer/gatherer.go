@@ -104,11 +104,8 @@ func (g *Gatherer) StartMetricsGatherer() {
 	ticker := time.NewTicker(g.pollInterval)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			go g.GatherRuntimeMetrics()
-			go g.GatherMemoryMetrics()
-		}
+	for range ticker.C {
+		go g.GatherRuntimeMetrics()
+		go g.GatherMemoryMetrics()
 	}
 }
