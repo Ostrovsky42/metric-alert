@@ -2,6 +2,7 @@ package agent
 
 import (
 	"fmt"
+	"metric-alert/internal/agent/config"
 	"metric-alert/internal/agent/gatherer"
 	"net/http"
 	"net/http/httptest"
@@ -34,14 +35,17 @@ func TestSendMetric(t *testing.T) {
 		},
 	}
 
-	reportInterval := 10
-	pollInterval := 2
 	testURL, err := url.Parse(testServer.URL)
 	if err != nil {
 		return
 	}
+	cfg := config.Config{
+		ServerHost:        testURL.Host,
+		ReportIntervalSec: 10,
+		PollIntervalSec:   2,
+	}
 
-	agent := NewAgent(reportInterval, pollInterval, testURL.Host)
+	agent := NewAgent(cfg)
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {

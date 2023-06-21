@@ -8,22 +8,25 @@ import (
 	"syscall"
 	"time"
 
+	"metric-alert/internal/agent/compressor"
 	"metric-alert/internal/agent/gatherer"
-	"metric-alert/internal/compressor"
-	"metric-alert/internal/logger"
+	"metric-alert/internal/hasher"
+	"metric-alert/internal/server/logger"
 )
 
 const numberOfAttempts = 3
 
 type MetricSender struct {
 	client            *http.Client
+	hashBuilder       hasher.HashBuilder
 	serverURL         string
 	attemptsIntervals []int
 }
 
-func NewMetricSender(serverURL string) *MetricSender {
+func NewMetricSender(serverURL string, signKey string) *MetricSender {
 	return &MetricSender{
 		client:            &http.Client{},
+		hashBuilder:       hasher.NewHashGenerator(signKey),
 		serverURL:         "http://" + serverURL,
 		attemptsIntervals: []int{1, 3, 5},
 	}
@@ -51,6 +54,7 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
+	s.signRequest(data, req)
 
 	var resp *http.Response
 	for i := 0; i < numberOfAttempts; i++ {
@@ -69,10 +73,11 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 			return fmt.Errorf("client.Do :%w", err)
 		}
 
-		err = resp.Body.Close()
-		if err != nil {
+		if err = resp.Body.Close(); err != nil {
 			return fmt.Errorf("resp.Body.Close :%w", err)
 		}
+
+		break
 	}
 
 	return nil
@@ -123,4 +128,13 @@ func (s *MetricSender) SendMetric(mType string, name string, value interface{}) 
 	}
 
 	return nil
+}
+
+func (s *MetricSender) signRequest(data []byte, req *http.Request) {
+	if s.hashBuilder.IsNotActive() {
+		return
+	}
+
+	hash := s.hashBuilder.GetHash(data)
+	req.Header.Set("HashSHA256", hash)
 }

@@ -6,10 +6,10 @@ import (
 	"html/template"
 	"net/http"
 
-	"metric-alert/internal/entities"
-	"metric-alert/internal/handlers/validator"
-	"metric-alert/internal/logger"
-	"metric-alert/internal/repository"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/handlers/validator"
+	"metric-alert/internal/server/logger"
+	"metric-alert/internal/server/repository"
 )
 
 const (

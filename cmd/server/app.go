@@ -2,22 +2,23 @@ package main
 
 import (
 	"html/template"
+	"metric-alert/internal/server/config"
+	"metric-alert/internal/server/handlers"
+	"metric-alert/internal/server/logger"
+	"metric-alert/internal/server/repository"
 	"net/http"
-
-	"metric-alert/internal/handlers"
-	"metric-alert/internal/logger"
-	"metric-alert/internal/repository"
 )
 
-const templatePath = "internal/html/templates/info_page.html"
+const templatePath = "internal/server/html/templates/info_page.html"
 
 type Application struct {
 	metric     handlers.MetricAlerts
 	storage    repository.MetricRepo
 	serverHost string
+	signKey    string
 }
 
-func NewApp(cfg Config) Application {
+func NewApp(cfg config.Config) Application {
 	memRepo, err := repository.InitRepo(
 		cfg.FileStoragePath,
 		cfg.DataBaseDSN,
@@ -37,11 +38,13 @@ func NewApp(cfg Config) Application {
 		metric:     handlers.NewMetric(memRepo, tmp),
 		storage:    memRepo,
 		serverHost: cfg.ServerHost,
+		signKey:    cfg.SignKey,
 	}
 }
 
 func (a Application) Run() {
-	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric))
+	a.signKey = ""
+	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric, a.signKey))
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error start serve")
 	}
