@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
 
-	"metric-alert/internal/logger"
+	"metric-alert/internal/server/logger"
 )
 
 type Postgres struct {

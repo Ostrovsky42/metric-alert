@@ -5,16 +5,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/go-chi/chi"
-	"metric-alert/internal/entities"
-	"metric-alert/internal/handlers"
-	"metric-alert/internal/repository"
-	"metric-alert/internal/storage"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	"github.com/go-chi/chi"
 	"github.com/stretchr/testify/assert"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/handlers"
+	"metric-alert/internal/server/repository"
+	"metric-alert/internal/server/storage"
 )
 
 func TestUpdateMetricValid(t *testing.T) {

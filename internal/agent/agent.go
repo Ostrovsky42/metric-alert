@@ -1,41 +1,44 @@
 package agent
 
 import (
+	"metric-alert/internal/agent/config"
 	"metric-alert/internal/agent/gatherer"
 	"metric-alert/internal/agent/metricsender"
-	"metric-alert/internal/logger"
+	"metric-alert/internal/server/entities"
+	"metric-alert/internal/server/logger"
 	"time"
-
-	"metric-alert/internal/entities"
 )
 
 type Agent struct {
 	sender         *metricsender.MetricSender
 	gatherer       *gatherer.Gatherer
 	reportInterval time.Duration
+	rateLimit      int
 }
 
-func NewAgent(reportInterval, pollInterval int, serverURL string) *Agent {
+func NewAgent(cfg config.Config) *Agent {
 	return &Agent{
-		sender:         metricsender.NewMetricSender(serverURL),
-		gatherer:       gatherer.NewGatherer(pollInterval),
-		reportInterval: time.Duration(reportInterval) * time.Second,
+		sender:         metricsender.NewMetricSender(cfg.ServerHost, cfg.SignKey),
+		gatherer:       gatherer.NewGatherer(cfg.PollIntervalSec),
+		reportInterval: time.Duration(cfg.ReportIntervalSec) * time.Second,
+		rateLimit:      cfg.RateLimit,
 	}
 }
 
 func (a *Agent) Run() {
-	go a.gatherer.GatherMetrics()
+	go a.gatherer.GatherRuntimeMetrics()
+	go a.gatherer.GatherMemoryMetrics()
 	//go a.sendReport()
-	a.sendPackReportJSON()
+	for id := 1; id <= a.rateLimit; id++ {
+		go a.sendPackReportJSON(id)
+	}
 }
 
-func (a *Agent) sendPackReportJSON() {
+func (a *Agent) sendPackReportJSON(workerID int) {
 	for {
-		var metrics []gatherer.Metrics
 		time.Sleep(a.reportInterval)
-		for _, metric := range a.gatherer.Metrics {
-			metrics = append(metrics, metric)
-		}
+
+		metrics := a.gatherer.GetMetricToSend()
 		if len(metrics) == 0 {
 			continue
 		}
@@ -43,6 +46,7 @@ func (a *Agent) sendPackReportJSON() {
 		if err := a.sender.SendMetricPackJSON(metrics); err != nil {
 			logger.Log.Error().Err(err).Msg("err SendMetricPackJSON")
 		}
+		logger.Log.Info().Int("worker_id", workerID).Msg("sent metrics")
 	}
 }
 

@@ -1,10 +1,10 @@
-package main
+package config
 
 import (
 	"flag"
 
 	"github.com/caarlos0/env/v6"
-	"metric-alert/internal/logger"
+	"metric-alert/internal/server/logger"
 )
 
 type Config struct {
@@ -13,13 +13,14 @@ type Config struct {
 	FileStoragePath  string `env:"FILE_STORAGE_PATH"`
 	DataBaseDSN      string `env:"DATABASE_DSN"`
 	Restore          bool   `env:"RESTORE"`
+	SignKey          string `env:"KEY"`
 }
 
-func getConfig() Config {
+func GetConfig() Config {
 	cfg := parseFlags()
 	err := env.Parse(&cfg)
 	if err != nil {
-		logger.Log.Fatal().Msg("err parse environment variable to config")
+		logger.Log.Fatal().Msg("err parse environment variable to server config")
 	}
 
 	return cfg
@@ -32,6 +33,7 @@ func parseFlags() Config {
 	flag.StringVar(&flagCfg.FileStoragePath, "f", "/tmp/metrics-db.json", "path to the file for recording readings")
 	flag.StringVar(&flagCfg.DataBaseDSN, "d", "", "string with the address of the connection to the database")
 	flag.BoolVar(&flagCfg.Restore, "r", true, "load saved values from the specified file at startup")
+	flag.StringVar(&flagCfg.SignKey, "k", "", "includes key signature using an algorithm SHA256")
 
 	flag.Parse()
 

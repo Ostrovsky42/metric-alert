@@ -1,16 +1,18 @@
 package main
 
 import (
-	"metric-alert/internal/logger"
+	"metric-alert/internal/server/config"
+	"metric-alert/internal/server/logger"
 )
 
 func main() {
 	logger.InitLogger()
 
-	cfg := getConfig()
+	cfg := config.GetConfig()
+
 	a := NewApp(cfg)
 	defer a.Close()
-	logger.Log.Info().Msg("server start on " + cfg.ServerHost)
+	logger.Log.Info().Interface("cfg", cfg).Msg("server start on " + cfg.ServerHost)
 
 	a.Run()
 }
