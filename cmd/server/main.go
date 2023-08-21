@@ -1,8 +1,12 @@
 package main
 
 import (
+	_ "net/http/pprof" // подключаем пакет pprof
+
+	"log"
 	"metric-alert/internal/server/config"
 	"metric-alert/internal/server/logger"
+	"net/http"
 )
 
 func main() {
@@ -13,6 +17,10 @@ func main() {
 	a := NewApp(cfg)
 	defer a.Close()
 	logger.Log.Info().Interface("cfg", cfg).Msg("server start on " + cfg.ServerHost)
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	a.Run()
 }

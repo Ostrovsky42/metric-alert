@@ -1,6 +1,41 @@
 package gatherer
 
 const (
+	DefaultMetricCount = 32
+
+	KeyAlloc = iota
+	KeyBuckHashSys
+	KeyFrees
+	KeyGCCPUFraction
+	KeyGCSys
+	KeyHeapAlloc
+	KeyHeapIdle
+	KeyHeapInuse
+	KeyHeapObjects
+	KeyHeapReleased
+	KeyHeapSys
+	KeyLastGC
+	KeyLookups
+	KeyMCacheInuse
+	KeyMCacheSys
+	KeyMSpanInuse
+	KeyMSpanSys
+	KeyMallocs
+	KeyNextGC
+	KeyNumForcedGC
+	KeyNumGC
+	KeyOtherSys
+	KeyPauseTotalNs
+	KeyStackInuse
+	KeyStackSys
+	KeySys
+	KeyTotalAlloc
+	KeyRandomValue
+	KeyPollCount
+	KeyTotalMemory
+	KeyFreeMemory
+	KeyCPUutilization1
+
 	Alloc           = "Alloc"
 	BuckHashSys     = "BuckHashSys"
 	Frees           = "Frees"
@@ -31,7 +66,7 @@ const (
 	RandomValue     = "RandomValue"
 	PollCount       = "PollCount"
 	TotalMemory     = "TotalMemory"
-	FreeMemory      = "PollCount"
+	FreeMemory      = "FreeMemory"
 	CPUutilization1 = "CPUutilization1"
 )
 

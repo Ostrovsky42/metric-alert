@@ -13,56 +13,56 @@ import (
 )
 
 type Gatherer struct {
-	Metrics      map[string]Metrics
+	Metrics      map[int]Metrics
 	pollInterval time.Duration
 	mu           sync.RWMutex
 }
 
 func NewGatherer(pollInterval int) *Gatherer {
 	return &Gatherer{
-		Metrics:      make(map[string]Metrics, 0),
+		Metrics:      make(map[int]Metrics, DefaultMetricCount),
 		pollInterval: time.Duration(pollInterval) * time.Second,
 	}
 }
 
 func (g *Gatherer) GatherRuntimeMetrics(delta *int64) {
 	var m runtime.MemStats
-	var delta int64
+
 	runtime.ReadMemStats(&m)
 	g.mu.Lock()
 
-	g.Metrics[Alloc] = Metrics{ID: Alloc, MType: entities.Gauge, Value: m.Alloc}
-	g.Metrics[BuckHashSys] = Metrics{ID: BuckHashSys, MType: entities.Gauge, Value: m.BuckHashSys}
-	g.Metrics[Frees] = Metrics{ID: Frees, MType: entities.Gauge, Value: m.Frees}
-	g.Metrics[GCSys] = Metrics{ID: GCSys, MType: entities.Gauge, Value: m.GCSys}
-	g.Metrics[HeapAlloc] = Metrics{ID: HeapAlloc, MType: entities.Gauge, Value: m.HeapAlloc}
-	g.Metrics[HeapIdle] = Metrics{ID: HeapIdle, MType: entities.Gauge, Value: m.HeapIdle}
-	g.Metrics[HeapInuse] = Metrics{ID: HeapInuse, MType: entities.Gauge, Value: m.HeapInuse}
-	g.Metrics[HeapObjects] = Metrics{ID: HeapObjects, MType: entities.Gauge, Value: m.HeapObjects}
-	g.Metrics[HeapReleased] = Metrics{ID: HeapReleased, MType: entities.Gauge, Value: m.HeapReleased}
-	g.Metrics[HeapSys] = Metrics{ID: HeapSys, MType: entities.Gauge, Value: m.HeapSys}
-	g.Metrics[LastGC] = Metrics{ID: LastGC, MType: entities.Gauge, Value: m.LastGC}
-	g.Metrics[Lookups] = Metrics{ID: Lookups, MType: entities.Gauge, Value: m.Lookups}
-	g.Metrics[MCacheInuse] = Metrics{ID: MCacheInuse, MType: entities.Gauge, Value: m.MCacheInuse}
-	g.Metrics[MCacheSys] = Metrics{ID: MCacheSys, MType: entities.Gauge, Value: m.MCacheSys}
-	g.Metrics[MSpanInuse] = Metrics{ID: MSpanInuse, MType: entities.Gauge, Value: m.MSpanInuse}
-	g.Metrics[MSpanSys] = Metrics{ID: MSpanSys, MType: entities.Gauge, Value: m.MSpanSys}
-	g.Metrics[Mallocs] = Metrics{ID: Mallocs, MType: entities.Gauge, Value: m.Mallocs}
-	g.Metrics[NextGC] = Metrics{ID: NextGC, MType: entities.Gauge, Value: m.NextGC}
-	g.Metrics[NumForcedGC] = Metrics{ID: NumForcedGC, MType: entities.Gauge, Value: m.NumForcedGC}
-	g.Metrics[NumGC] = Metrics{ID: NumGC, MType: entities.Gauge, Value: m.NumGC}
-	g.Metrics[OtherSys] = Metrics{ID: OtherSys, MType: entities.Gauge, Value: m.OtherSys}
-	g.Metrics[PauseTotalNs] = Metrics{ID: PauseTotalNs, MType: entities.Gauge, Value: m.PauseTotalNs}
-	g.Metrics[StackInuse] = Metrics{ID: StackInuse, MType: entities.Gauge, Value: m.StackInuse}
-	g.Metrics[StackSys] = Metrics{ID: StackSys, MType: entities.Gauge, Value: m.StackSys}
-	g.Metrics[Sys] = Metrics{ID: Sys, MType: entities.Gauge, Value: m.Sys}
-	g.Metrics[TotalAlloc] = Metrics{ID: TotalAlloc, MType: entities.Gauge, Value: m.TotalAlloc}
-	g.Metrics[GCCPUFraction] = Metrics{ID: GCCPUFraction, MType: entities.Gauge, Value: m.GCCPUFraction}
-	g.Metrics[RandomValue] = Metrics{ID: RandomValue, MType: entities.Gauge, Value: rand.Uint32()}
-	g.Metrics[PollCount] = Metrics{ID: PollCount, MType: entities.Counter, Delta: delta}
+	g.Metrics[KeyAlloc] = Metrics{ID: Alloc, MType: entities.Gauge, Value: m.Alloc}
+	g.Metrics[KeyBuckHashSys] = Metrics{ID: BuckHashSys, MType: entities.Gauge, Value: m.BuckHashSys}
+	g.Metrics[KeyFrees] = Metrics{ID: Frees, MType: entities.Gauge, Value: m.Frees}
+	g.Metrics[KeyGCSys] = Metrics{ID: GCSys, MType: entities.Gauge, Value: m.GCSys}
+	g.Metrics[KeyHeapAlloc] = Metrics{ID: HeapAlloc, MType: entities.Gauge, Value: m.HeapAlloc}
+	g.Metrics[KeyHeapIdle] = Metrics{ID: HeapIdle, MType: entities.Gauge, Value: m.HeapIdle}
+	g.Metrics[KeyHeapInuse] = Metrics{ID: HeapInuse, MType: entities.Gauge, Value: m.HeapInuse}
+	g.Metrics[KeyHeapObjects] = Metrics{ID: HeapObjects, MType: entities.Gauge, Value: m.HeapObjects}
+	g.Metrics[KeyHeapReleased] = Metrics{ID: HeapReleased, MType: entities.Gauge, Value: m.HeapReleased}
+	g.Metrics[KeyHeapSys] = Metrics{ID: HeapSys, MType: entities.Gauge, Value: m.HeapSys}
+	g.Metrics[KeyLastGC] = Metrics{ID: LastGC, MType: entities.Gauge, Value: m.LastGC}
+	g.Metrics[KeyLookups] = Metrics{ID: Lookups, MType: entities.Gauge, Value: m.Lookups}
+	g.Metrics[KeyMCacheInuse] = Metrics{ID: MCacheInuse, MType: entities.Gauge, Value: m.MCacheInuse}
+	g.Metrics[KeyMCacheSys] = Metrics{ID: MCacheSys, MType: entities.Gauge, Value: m.MCacheSys}
+	g.Metrics[KeyMSpanInuse] = Metrics{ID: MSpanInuse, MType: entities.Gauge, Value: m.MSpanInuse}
+	g.Metrics[KeyMSpanSys] = Metrics{ID: MSpanSys, MType: entities.Gauge, Value: m.MSpanSys}
+	g.Metrics[KeyMallocs] = Metrics{ID: Mallocs, MType: entities.Gauge, Value: m.Mallocs}
+	g.Metrics[KeyNextGC] = Metrics{ID: NextGC, MType: entities.Gauge, Value: m.NextGC}
+	g.Metrics[KeyNumForcedGC] = Metrics{ID: NumForcedGC, MType: entities.Gauge, Value: m.NumForcedGC}
+	g.Metrics[KeyNumGC] = Metrics{ID: NumGC, MType: entities.Gauge, Value: m.NumGC}
+	g.Metrics[KeyOtherSys] = Metrics{ID: OtherSys, MType: entities.Gauge, Value: m.OtherSys}
+	g.Metrics[KeyPauseTotalNs] = Metrics{ID: PauseTotalNs, MType: entities.Gauge, Value: m.PauseTotalNs}
+	g.Metrics[KeyStackInuse] = Metrics{ID: StackInuse, MType: entities.Gauge, Value: m.StackInuse}
+	g.Metrics[KeyStackSys] = Metrics{ID: StackSys, MType: entities.Gauge, Value: m.StackSys}
+	g.Metrics[KeySys] = Metrics{ID: Sys, MType: entities.Gauge, Value: m.Sys}
+	g.Metrics[KeyTotalAlloc] = Metrics{ID: TotalAlloc, MType: entities.Gauge, Value: m.TotalAlloc}
+	g.Metrics[KeyGCCPUFraction] = Metrics{ID: GCCPUFraction, MType: entities.Gauge, Value: m.GCCPUFraction}
+	g.Metrics[KeyRandomValue] = Metrics{ID: RandomValue, MType: entities.Gauge, Value: rand.Uint32()}
+	g.Metrics[KeyPollCount] = Metrics{ID: PollCount, MType: entities.Counter, Delta: *delta}
 
 	g.mu.Unlock()
-	delta++
+	*delta++
 }
 
 func (g *Gatherer) GatherMemoryMetrics() {
@@ -82,9 +82,9 @@ func (g *Gatherer) GatherMemoryMetrics() {
 
 	g.mu.Lock()
 
-	g.Metrics[TotalMemory] = Metrics{ID: TotalMemory, MType: entities.Gauge, Value: v.Total}
-	g.Metrics[FreeMemory] = Metrics{ID: TotalMemory, MType: entities.Gauge, Value: v.Free}
-	g.Metrics[CPUutilization1] = Metrics{ID: CPUutilization1, MType: entities.Gauge, Value: int64(cpuNum)}
+	g.Metrics[KeyTotalMemory] = Metrics{ID: TotalMemory, MType: entities.Gauge, Value: v.Total}
+	g.Metrics[KeyFreeMemory] = Metrics{ID: FreeMemory, MType: entities.Gauge, Value: v.Free}
+	g.Metrics[KeyCPUutilization1] = Metrics{ID: CPUutilization1, MType: entities.Gauge, Value: int64(cpuNum)}
 
 	g.mu.Unlock()
 }
