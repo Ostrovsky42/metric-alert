@@ -13,6 +13,16 @@ import (
 	"metric-alert/internal/server/storage"
 )
 
+// GetValueWithBody godoc
+// @Summary Get metric
+// @Description  Get metric from request body
+// @Tags         GetMetric
+// @Param		 metric_data body entities.Metrics true "Metric data"
+// @Success      200  {object}    entities.Metrics
+// @Failure      400
+// @Failure      404
+// @Failure      500
+// @Router       /value [get].
 func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
 	err := json.NewDecoder(r.Body).Decode(&metric)
@@ -57,6 +67,18 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// GetValue godoc
+// @Summary Get metric
+// @Description  Get metric value by specifying its type, name, and value from path
+// @Tags         GetMetric
+// @Param        type   path      string  true  "Metric Type"
+// @Param        name   path      string  true  "Metric Name"
+// @Param        value  path      number  true  "Metric Value"
+// @Success      200  {object}    entities.Metrics
+// @Failure      400
+// @Failure      404
+// @Failure      500
+// @Router       /value/{type}/{name} [get].
 func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
 
@@ -87,6 +109,14 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 	sendOK(w, *receivedMetric)
 }
 
+// InfoPage godoc
+// @Summary Get information page
+// @Description Get an HTML page with information about metrics
+// @Tags InfoPage
+// @Produce html
+// @Success 200 {string} html "HTML content"
+// @Failure 500 "Internal Server Error"
+// @Router / [get].
 func (m MetricAlerts) InfoPage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 

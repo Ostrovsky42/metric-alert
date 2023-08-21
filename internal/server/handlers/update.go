@@ -13,6 +13,21 @@ import (
 	"metric-alert/internal/server/repository"
 )
 
+// @Title MetricAlerts API
+// @Description Metric storage service.
+
+// @host      localhost:8080
+
+// @SecurityDefinitions.apikey ApiKeyAuth
+// @In header
+// @Name authorization
+
+// @Tag.name GetMetric
+// @Tag.description "Group of requests to get service metrics"
+
+// @Tag.name UpdateMetric
+// @Tag.description "Group of requests to update service metrics"
+
 const (
 	metricType  = "type"
 	metricName  = "name"
@@ -31,6 +46,18 @@ func NewMetric(metricStorage repository.MetricRepo, tmp *template.Template) Metr
 	}
 }
 
+// UpdateMetricWithBody godoc
+// @Summary Update metric
+// @Description  Update metric from request body
+// @Tags         UpdateMetric
+// @Accept       json
+// @Produce      json
+// @Param		 metric_data body entities.Metrics true "Metric data"
+// @Success      200  {object}  entities.Metrics
+// @Failure      400
+// @Failure      404
+// @Failure      500
+// @Router       /update/ [post].
 func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
 	err := json.NewDecoder(r.Body).Decode(&metric)
@@ -74,6 +101,18 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 	w.Write(data)
 }
 
+// UpdateMetricsWithBody godoc
+// @Summary Update metrics
+// @Description  Update metrics from request body
+// @Tags         UpdateMetric
+// @Accept       json
+// @Produce      json
+// @Param		 metrics_data body []entities.Metrics true "Arrays metric data"
+// @Success      200  {object}  []entities.Metrics
+// @Failure      400
+// @Failure      404
+// @Failure      500
+// @Router       /updates/ [post].
 func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Request) {
 	var metrics []entities.Metrics
 	err := json.NewDecoder(r.Body).Decode(&metrics)
@@ -128,6 +167,20 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
+// UpdateMetric godoc
+// @Summary Update metrics
+// @Description  Update metric by specifying its type, name, and value from path
+// @Tags         UpdateMetric
+// @Accept       json
+// @Produce      json
+// @Param        type   path      string  true  "Metric Type"
+// @Param        name   path      string  true  "Metric Name"
+// @Param        value  path      number  true  "Metric Value"
+// @Success      200
+// @Failure      400
+// @Failure      404
+// @Failure      500
+// @Router       /update/{type}/{name}/{value}/ [post].
 func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	metric := entities.Metrics{}
 
