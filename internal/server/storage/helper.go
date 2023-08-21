@@ -24,11 +24,11 @@ func SortMetric(metrics []entities.Metrics) {
 	sort.Slice(metrics, sortFunc)
 }
 
-func RemoveDuplicatesIDs(IDs []string) []string {
+func RemoveDuplicatesIDs(ids []string) []string {
 	uniqueIDs := make(map[string]struct{})
-	result := make([]string, 0, len(IDs))
+	result := make([]string, 0, len(ids))
 
-	for _, item := range IDs {
+	for _, item := range ids {
 		if _, ok := uniqueIDs[item]; !ok {
 			uniqueIDs[item] = struct{}{}
 			result = append(result, item)

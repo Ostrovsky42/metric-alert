@@ -92,7 +92,7 @@ func (g *Gatherer) GatherMemoryMetrics() {
 func (g *Gatherer) GetMetricToSend() []Metrics {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	var metrics []Metrics
+	metrics := make([]Metrics, 0, len(g.Metrics))
 	for _, metric := range g.Metrics {
 		metrics = append(metrics, metric)
 	}
