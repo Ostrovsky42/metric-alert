@@ -25,7 +25,7 @@ func NewGatherer(pollInterval int) *Gatherer {
 	}
 }
 
-func (g *Gatherer) GatherRuntimeMetrics() {
+func (g *Gatherer) GatherRuntimeMetrics(delta *int64) {
 	var m runtime.MemStats
 	var delta int64
 	runtime.ReadMemStats(&m)
@@ -103,9 +103,10 @@ func (g *Gatherer) GetMetricToSend() []Metrics {
 func (g *Gatherer) StartMetricsGatherer() {
 	ticker := time.NewTicker(g.pollInterval)
 	defer ticker.Stop()
+	var delta int64
 
 	for range ticker.C {
-		go g.GatherRuntimeMetrics()
+		go g.GatherRuntimeMetrics(&delta)
 		go g.GatherMemoryMetrics()
 	}
 }

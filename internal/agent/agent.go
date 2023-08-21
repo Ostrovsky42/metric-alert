@@ -26,9 +26,8 @@ func NewAgent(cfg config.Config) *Agent {
 }
 
 func (a *Agent) Run() {
-	go a.gatherer.GatherRuntimeMetrics()
-	go a.gatherer.GatherMemoryMetrics()
-	//go a.sendReport()
+	go a.gatherer.StartMetricsGatherer()
+
 	for id := 1; id <= a.rateLimit; id++ {
 		go a.sendPackReportJSON(id)
 	}
