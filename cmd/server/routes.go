@@ -4,6 +4,7 @@ import (
 	"compress/gzip"
 
 	"github.com/go-chi/chi"
+
 	"metric-alert/internal/server/handlers"
 	"metric-alert/internal/server/middleware"
 )

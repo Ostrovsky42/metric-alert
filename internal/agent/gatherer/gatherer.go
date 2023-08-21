@@ -8,6 +8,7 @@ import (
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
+
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/logger"
 )

@@ -10,8 +10,7 @@ import (
 )
 
 type ZipMiddleware struct {
-	zContentTypes []string
-	gzipW         *gzip.Writer
+	gzipW *gzip.Writer
 }
 
 func NewZipMiddleware(level int) ZipMiddleware {

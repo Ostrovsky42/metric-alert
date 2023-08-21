@@ -2,8 +2,9 @@ package metricpg
 
 import (
 	"context"
-	"github.com/jackc/pgx/v4"
 	"time"
+
+	"github.com/jackc/pgx/v4"
 
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/logger"
@@ -144,11 +145,11 @@ func (m *MetricStoragePG) GetMetric(ctx context.Context, metricID string) (*enti
 	return m.MetricStorage.GetMetricByID(ctx, metricID)
 }
 
-func (m *MetricStoragePG) GetMetricsByIDs(ctx context.Context, IDs []string) ([]entities.Metrics, error) {
+func (m *MetricStoragePG) GetMetricsByIDs(ctx context.Context, ids []string) ([]entities.Metrics, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultQueryTimeout)
 	defer cancel()
 
-	return m.MetricStorage.GetMetricsByIDs(ctx, IDs)
+	return m.MetricStorage.GetMetricsByIDs(ctx, ids)
 }
 
 func (m *MetricStoragePG) GetAllMetric(ctx context.Context) ([]entities.Metrics, error) {

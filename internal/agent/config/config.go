@@ -3,8 +3,17 @@ package config
 import (
 	"flag"
 
-	"github.com/caarlos0/env/v6"
 	"metric-alert/internal/server/logger"
+
+	"github.com/caarlos0/env/v6"
+)
+
+const (
+	DefaultServerHost        = "localhost:8080"
+	DefaultReportIntervalSec = 10
+	DefaultPollIntervalSec   = 2
+	DefaultSignKey           = ""
+	DefaultRateLimit         = 1
 )
 
 type Config struct {
@@ -27,11 +36,11 @@ func GetConfig() Config {
 
 func parseFlags() Config {
 	flagCfg := Config{}
-	flag.StringVar(&flagCfg.ServerHost, "a", "localhost:8080", "server endpoint address")
-	flag.IntVar(&flagCfg.ReportIntervalSec, "r", 10, "frequency of sending metrics")
-	flag.IntVar(&flagCfg.PollIntervalSec, "p", 2, "metric polling frequency")
-	flag.StringVar(&flagCfg.SignKey, "k", "", "includes key signature using an algorithm SHA256")
-	flag.IntVar(&flagCfg.RateLimit, "l", 1, "number of simultaneously requests to the server")
+	flag.StringVar(&flagCfg.ServerHost, "a", DefaultServerHost, "server endpoint address")
+	flag.IntVar(&flagCfg.ReportIntervalSec, "r", DefaultReportIntervalSec, "frequency of sending metrics")
+	flag.IntVar(&flagCfg.PollIntervalSec, "p", DefaultPollIntervalSec, "metric polling frequency")
+	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "includes key signature using an algorithm SHA256")
+	flag.IntVar(&flagCfg.RateLimit, "l", DefaultRateLimit, "number of simultaneously requests to the server")
 
 	flag.Parse()
 

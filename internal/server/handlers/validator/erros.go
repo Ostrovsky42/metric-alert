@@ -2,7 +2,14 @@ package validator
 
 import "errors"
 
-var errUnknownMetricType = errors.New("unknown metric type")
-var errNotProvidedValue = errors.New("not provided metric value")
-var errEmptyMetricType = errors.New("empty metric type")
-var errEmptyMetricName = errors.New("empty metric name")
+const (
+	UnknownMetricType = "unknown metric type"
+	NotProvidedValue  = "not provided metric value"
+	EmptyMetricType   = "empty metric type"
+	EmptyMetricName   = "empty metric name"
+)
+
+var errUnknownMetricType = errors.New(UnknownMetricType)
+var errNotProvidedValue = errors.New(NotProvidedValue)
+var errEmptyMetricType = errors.New(EmptyMetricType)
+var errEmptyMetricName = errors.New(EmptyMetricName)

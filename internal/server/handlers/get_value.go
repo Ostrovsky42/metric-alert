@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi"
+
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/handlers/validator"
 	"metric-alert/internal/server/logger"

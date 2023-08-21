@@ -2,9 +2,10 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/go-chi/chi"
 	"html/template"
 	"net/http"
+
+	"github.com/go-chi/chi"
 
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/handlers/validator"
@@ -42,7 +43,7 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 	err = validator.ValidateUpdateWithBody(metric)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err validate metric")
-		if err.Error() == "empty metric name" {
+		if err.Error() == validator.EmptyMetricName {
 			w.WriteHeader(http.StatusNotFound)
 
 			return
@@ -85,7 +86,7 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 	err = validator.ValidateMetrics(metrics)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err validate metrics")
-		if err.Error() == "empty metric name" {
+		if err.Error() == validator.EmptyMetricName {
 			w.WriteHeader(http.StatusNotFound)
 
 			return
@@ -103,7 +104,7 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var updatedMetricIDs []string
+	updatedMetricIDs := make([]string, 0, len(metrics))
 	for _, metric := range metrics {
 		updatedMetricIDs = append(updatedMetricIDs, metric.ID)
 	}
@@ -137,7 +138,7 @@ func (m MetricAlerts) UpdateMetric(w http.ResponseWriter, r *http.Request) {
 	err := validator.ValidateUpdate(&metric, mValue)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err validate metric")
-		if err.Error() == "empty metric name" {
+		if err.Error() == validator.EmptyMetricName {
 			w.WriteHeader(http.StatusNotFound)
 
 			return

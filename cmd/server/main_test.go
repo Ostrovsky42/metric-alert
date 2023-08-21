@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/stretchr/testify/assert"
+
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/handlers"
 	"metric-alert/internal/server/repository"
@@ -32,7 +33,7 @@ func TestUpdateMetricValid(t *testing.T) {
 
 	r := chi.NewRouter()
 
-	metricAlerts := handlers.NewMetric(mockStorage, nil) //todo mock
+	metricAlerts := handlers.NewMetric(mockStorage, nil)
 	r.Post("/update/", metricAlerts.UpdateMetricWithBody)
 
 	rr := httptest.NewRecorder()
@@ -93,7 +94,7 @@ func TestUpdateMetricsValid(t *testing.T) {
 
 	r := chi.NewRouter()
 
-	metricAlerts := handlers.NewMetric(mockStorage, nil) //todo mock
+	metricAlerts := handlers.NewMetric(mockStorage, nil)
 	r.Post("/updates/", metricAlerts.UpdateMetricsWithBody)
 
 	rr := httptest.NewRecorder()
@@ -127,7 +128,7 @@ func TestUpdateMetricsInvalid(t *testing.T) {
 
 	r := chi.NewRouter()
 
-	metricAlerts := handlers.NewMetric(mockStorage, nil) //todo mock
+	metricAlerts := handlers.NewMetric(mockStorage, nil)
 	r.Post("/updates/", metricAlerts.UpdateMetricsWithBody)
 
 	rr := httptest.NewRecorder()

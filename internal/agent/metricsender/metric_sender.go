@@ -68,8 +68,8 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 				time.Sleep(time.Duration(s.attemptsIntervals[i]) * time.Second)
 
 				continue
-
 			}
+
 			return fmt.Errorf("client.Do :%w", err)
 		}
 

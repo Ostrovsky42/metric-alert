@@ -5,6 +5,7 @@ import (
 	"flag"
 
 	"github.com/caarlos0/env/v6"
+
 	"metric-alert/internal/server/logger"
 )
 

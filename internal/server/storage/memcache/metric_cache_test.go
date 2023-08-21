@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	"metric-alert/internal/server/entities"
 )
 
@@ -136,7 +137,6 @@ func TestMemStorage_SetMetric(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			tt.storage.SetMetric(context.Background(), tt.metric)
 			got, got1 := tt.storage.GetMetric(context.Background(), tt.metricID)
 			assert.Equal(t, got, tt.want)

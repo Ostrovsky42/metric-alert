@@ -11,24 +11,25 @@ import (
 	"metric-alert/internal/server/storage/memcache"
 )
 
+const perm = 0666
+
 type FileRecorder struct {
 	filename    string
 	metricCache *memcache.MemCache
-	isRestore   bool
 }
 
 func NewFileRecorder(
 	filename string,
 	memStorage *memcache.MemCache,
-) (*FileRecorder, error) {
+) *FileRecorder {
 	return &FileRecorder{
 		filename:    filename,
 		metricCache: memStorage,
-	}, nil
+	}
 }
 
 func (f *FileRecorder) RestoreMetrics() {
-	file, err := os.OpenFile(f.filename, os.O_RDWR|os.O_CREATE, 0666)
+	file, err := os.OpenFile(f.filename, os.O_RDWR|os.O_CREATE, perm)
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("err open file")
 	}
@@ -49,7 +50,7 @@ func (f *FileRecorder) RecordMetrics() {
 		return
 	}
 
-	file, err := os.OpenFile(f.filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0666)
+	file, err := os.OpenFile(f.filename, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
 	if err != nil {
 		logger.Log.Error().Err(err).Msg("err open file")
 
