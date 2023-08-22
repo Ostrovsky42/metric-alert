@@ -1,3 +1,4 @@
+// Пакет memcache предоставляет реализацию кеша в памяти для хранения метрик.
 package memcache
 
 import (
@@ -10,11 +11,13 @@ import (
 	"metric-alert/internal/server/storage"
 )
 
+// MemCache представляет кеш в памяти для хранения метрик.
 type MemCache struct {
 	mu      sync.RWMutex
 	storage map[string]entities.Metrics
 }
 
+// MetricCache определяет интерфейс для работы с кешем метрик.
 type MetricCache interface {
 	SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error)
 	SetMetrics(ctx context.Context, metric []entities.Metrics) error
@@ -32,7 +35,7 @@ func NewMemCache() *MemCache {
 	return &MemCache{storage: make(map[string]entities.Metrics)}
 }
 
-func (m *MemCache) SetMetric(_ context.Context, metric entities.Metrics) (*entities.Metrics, error) {
+func (m *MemCache) SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

@@ -13,6 +13,7 @@ import (
 	"metric-alert/internal/server/storage"
 )
 
+// GetValueWithBody предоставляет обработчик для получения метрики из тела запроса.
 // GetValueWithBody godoc
 // @Summary Get metric
 // @Description  Get metric from request body
@@ -67,6 +68,7 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 	w.Write(data)
 }
 
+// GetValue предоставляет обработчик для получения метрики по типу, имени и значению из пути.
 // GetValue godoc
 // @Summary Get metric
 // @Description  Get metric value by specifying its type, name, and value from path
@@ -109,6 +111,7 @@ func (m MetricAlerts) GetValue(w http.ResponseWriter, r *http.Request) {
 	sendOK(w, *receivedMetric)
 }
 
+// InfoPage предоставляет обработчик для получения HTML-страницы с информацией о метриках.
 // InfoPage godoc
 // @Summary Get information page
 // @Description Get an HTML page with information about metrics

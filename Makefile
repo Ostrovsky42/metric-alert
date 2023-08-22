@@ -20,7 +20,7 @@ profile/server:
 	go tool pprof -http=":9090" -seconds=30 http://localhost:6060/debug/pprof/profile
 
 doc:
-	makm
+	godoc -http=:8090 -play
 
 swagger:
 	swag init --output ./swagger/ -g internal/server/handlers/update.go -g internal/server/handlers/get_value.go

@@ -1,4 +1,4 @@
-// Package config provides configuration settings for the application.
+// Пакет config предоставляет настройки конфигурации для сервера.
 package config
 
 import (
@@ -9,6 +9,7 @@ import (
 	"metric-alert/internal/server/logger"
 )
 
+// Константы для конфигурации по умолчанию.
 const (
 	DefaultServerHost       = "localhost:8080"
 	DefaultStoreIntervalSec = 300
@@ -18,37 +19,37 @@ const (
 	DefaultSignKey          = ""
 )
 
-// Config represents the application configuration.
+// Config представляет конфигурацию сервера.
 type Config struct {
-	ServerHost       string `env:"ADDRESS"`           // Address of the server endpoint.
-	StoreIntervalSec int    `env:"STORE_INTERVAL"`    // Interval for writing server readings to disk.
-	FileStoragePath  string `env:"FILE_STORAGE_PATH"` // Path to the file for recording readings.
-	DataBaseDSN      string `env:"DATABASE_DSN"`      // Address of the database connection.
-	Restore          bool   `env:"RESTORE"`           // Whether to load saved values from a file at startup.
-	SignKey          string `env:"KEY"`               // Key for signature using the SHA256 algorithm.
+	ServerHost       string `env:"ADDRESS"`           // ServerHost Адрес работы сервера.
+	StoreIntervalSec int    `env:"STORE_INTERVAL"`    // StoreIntervalSec Интервал записи метрик.
+	FileStoragePath  string `env:"FILE_STORAGE_PATH"` // FileStoragePath Путь к файлу для записи метрик.
+	DataBaseDSN      string `env:"DATABASE_DSN"`      // DataBaseDSN Строка подключения к базе данных.
+	Restore          bool   `env:"RESTORE"`           // Restore Загружать ли сохраненные значения из файла при запуске.
+	SignKey          string `env:"KEY"`               // SignKey Ключ для подписи с использованием алгоритма SHA256.
 }
 
-// GetConfig provides configuration set through flags or environment variables.
-// If no variables are provided, default values will be used.
+// GetConfig возвращает настройки сервера, считываемые из флагов командной строки и переменных окружения.
+// Если переменные не предоставлены, будут использованы значения по умолчанию.
 func GetConfig() Config {
 	cfg := parseFlags()
 	err := env.Parse(&cfg)
 	if err != nil {
-		logger.Log.Fatal().Msg("error parsing environment variables to server config")
+		logger.Log.Fatal().Msg("ошибка при разборе переменных окружения для конфигурации сервера")
 	}
 
 	return cfg
 }
 
-// parseFlags parses command-line flags and returns a Config.
+// parseFlags разбирает флаги командной строки и возвращает  настройки сервера.
 func parseFlags() Config {
 	flagCfg := Config{}
-	flag.StringVar(&flagCfg.ServerHost, "a", DefaultServerHost, "server endpoint host")
-	flag.IntVar(&flagCfg.StoreIntervalSec, "i", DefaultStoreIntervalSec, "interval for writing server readings to disk")
-	flag.StringVar(&flagCfg.FileStoragePath, "f", DefaultFileStoragePath, "path to the file for recording readings")
-	flag.StringVar(&flagCfg.DataBaseDSN, "d", DefaultDataBaseDSN, "string with the address of the connection to the database")
-	flag.BoolVar(&flagCfg.Restore, "r", DefaultRestore, "load saved values from the specified file at startup")
-	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "includes key signature using an algorithm SHA256")
+	flag.StringVar(&flagCfg.ServerHost, "a", DefaultServerHost, "хост конечной точки сервера")
+	flag.IntVar(&flagCfg.StoreIntervalSec, "i", DefaultStoreIntervalSec, "интервал записи показаний сервера на диск")
+	flag.StringVar(&flagCfg.FileStoragePath, "f", DefaultFileStoragePath, "путь к файлу для записи показаний")
+	flag.StringVar(&flagCfg.DataBaseDSN, "d", DefaultDataBaseDSN, "строка с адресом подключения к базе данных")
+	flag.BoolVar(&flagCfg.Restore, "r", DefaultRestore, "загружать сохраненные значения из указанного файла при запуске")
+	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "ключ для подписи с использованием алгоритма SHA256")
 
 	flag.Parse()
 

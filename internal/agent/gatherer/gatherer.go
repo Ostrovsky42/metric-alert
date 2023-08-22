@@ -1,3 +1,4 @@
+// Пакет gatherer предоставляет функции для сбора метрик о работе приложения.
 package gatherer
 
 import (
@@ -13,12 +14,14 @@ import (
 	"metric-alert/internal/server/logger"
 )
 
+// Gatherer представляет сборщик метрик и их хранилище.
 type Gatherer struct {
 	Metrics      map[int]Metrics
 	pollInterval time.Duration
 	mu           sync.RWMutex
 }
 
+// NewGatherer создает новый экземпляр сборщика метрик с заданным интервалом сбора.
 func NewGatherer(pollInterval int) *Gatherer {
 	return &Gatherer{
 		Metrics:      make(map[int]Metrics, DefaultMetricCount),
@@ -26,6 +29,7 @@ func NewGatherer(pollInterval int) *Gatherer {
 	}
 }
 
+// GatherRuntimeMetrics собирает и обновляет метрики о работе приложения в реальном времени.
 func (g *Gatherer) GatherRuntimeMetrics(delta *int64) {
 	var m runtime.MemStats
 
@@ -66,6 +70,7 @@ func (g *Gatherer) GatherRuntimeMetrics(delta *int64) {
 	*delta++
 }
 
+// GatherMemoryMetrics собирает метрики о памяти и процессоре.
 func (g *Gatherer) GatherMemoryMetrics() {
 	v, err := mem.VirtualMemory()
 	if err != nil {
@@ -90,6 +95,7 @@ func (g *Gatherer) GatherMemoryMetrics() {
 	g.mu.Unlock()
 }
 
+// GetMetricToSend возвращает массив метрик, готовых к отправке.
 func (g *Gatherer) GetMetricToSend() []Metrics {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
@@ -101,6 +107,7 @@ func (g *Gatherer) GetMetricToSend() []Metrics {
 	return metrics
 }
 
+// StartMetricsGatherer запускает сбор метрик в фоновом режиме.
 func (g *Gatherer) StartMetricsGatherer() {
 	ticker := time.NewTicker(g.pollInterval)
 	defer ticker.Stop()

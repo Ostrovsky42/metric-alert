@@ -1,3 +1,4 @@
+// Пакет handlers предоставляет обработчики HTTP-запросов для работы с метриками.
 package handlers
 
 import (
@@ -34,11 +35,13 @@ const (
 	metricValue = "value"
 )
 
+// MetricAlerts представляет структуру для обработчиков метрик.
 type MetricAlerts struct {
 	metricStorage repository.MetricRepo
 	tmp           *template.Template
 }
 
+// NewMetric создает новый экземпляр MetricAlerts.
 func NewMetric(metricStorage repository.MetricRepo, tmp *template.Template) MetricAlerts {
 	return MetricAlerts{
 		metricStorage: metricStorage,
@@ -46,6 +49,7 @@ func NewMetric(metricStorage repository.MetricRepo, tmp *template.Template) Metr
 	}
 }
 
+// UpdateMetricWithBody предоставляет обработчик для обновления метрики из тела запроса.
 // UpdateMetricWithBody godoc
 // @Summary Update metric
 // @Description  Update metric from request body
@@ -101,6 +105,7 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 	w.Write(data)
 }
 
+// UpdateMetricsWithBody предоставляет обработчик для обновления метрик из тела запроса.
 // UpdateMetricsWithBody godoc
 // @Summary Update metrics
 // @Description  Update metrics from request body
@@ -167,6 +172,7 @@ func (m MetricAlerts) UpdateMetricsWithBody(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusOK)
 }
 
+// UpdateMetric предоставляет обработчик для обновления метрики по типу, имени и значению из пути.
 // UpdateMetric godoc
 // @Summary Update metrics
 // @Description  Update metric by specifying its type, name, and value from path

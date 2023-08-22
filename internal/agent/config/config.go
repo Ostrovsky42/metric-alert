@@ -1,3 +1,4 @@
+// Пакет config предоставляет настройки конфигурации для агента.
 package config
 
 import (
@@ -8,6 +9,7 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
+// Константы для конфигурации по умолчанию.
 const (
 	DefaultServerHost        = "localhost:8080"
 	DefaultReportIntervalSec = 10
@@ -16,14 +18,17 @@ const (
 	DefaultRateLimit         = 1
 )
 
+// Config содержит настройки агента.
 type Config struct {
-	ServerHost        string `env:"ADDRESS"`
-	ReportIntervalSec int    `env:"REPORT_INTERVAL"`
-	PollIntervalSec   int    `env:"POLL_INTERVAL"`
-	SignKey           string `env:"KEY"`
-	RateLimit         int    `env:"RATE_LIMIT"`
+	ServerHost        string `env:"ADDRESS"`         // ServerHost определяет адрес сервера.
+	ReportIntervalSec int    `env:"REPORT_INTERVAL"` // ReportIntervalSec определяет интервал отправки метрик.
+	PollIntervalSec   int    `env:"POLL_INTERVAL"`   // PollIntervalSec определяет интервал опроса метрик.
+	SignKey           string `env:"KEY"`             // SignKey определяет ключ подписи.
+	RateLimit         int    `env:"RATE_LIMIT"`      // RateLimit определяет ограничение скорости запросов к серверу.
 }
 
+// GetConfig возвращает настройки агента, считываемые из флагов командной строки и переменных окружения.
+// Если переменные не предоставлены, будут использованы значения по умолчанию.
 func GetConfig() Config {
 	cfg := parseFlags()
 	err := env.Parse(&cfg)
@@ -34,6 +39,7 @@ func GetConfig() Config {
 	return cfg
 }
 
+// parseFlags разбирает флаги командной строки и возвращает настройки агента.
 func parseFlags() Config {
 	flagCfg := Config{}
 	flag.StringVar(&flagCfg.ServerHost, "a", DefaultServerHost, "server endpoint address")
