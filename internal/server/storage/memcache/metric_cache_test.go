@@ -3,9 +3,9 @@ package memcache
 import (
 	"context"
 	"errors"
-	"testing"
-
+	"fmt"
 	"github.com/stretchr/testify/assert"
+	"testing"
 
 	"metric-alert/internal/server/entities"
 )
@@ -142,5 +142,43 @@ func TestMemStorage_SetMetric(t *testing.T) {
 			assert.Equal(t, got, tt.want)
 			assert.Equal(t, got1, tt.err)
 		})
+	}
+}
+
+func BenchmarkSetMetric(b *testing.B) {
+	mc := NewMemCache()
+	ctx := context.Background()
+	metric := entities.Metrics{
+		ID:    fmt.Sprintf("example_metric_%d", 1),
+		MType: entities.Gauge,
+		Delta: new(int64),
+	}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := mc.SetMetric(ctx, metric)
+		if err != nil {
+			b.Fatalf("Error setting metric: %s", err)
+		}
+	}
+}
+
+func BenchmarkGetMetric(b *testing.B) {
+	mc := NewMemCache()
+	ctx := context.Background()
+
+	metric := entities.Metrics{
+		ID:    "example_metric",
+		MType: entities.Gauge,
+		Delta: new(int64),
+	}
+
+	mc.SetMetric(ctx, metric)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		_, err := mc.GetMetric(ctx, metric.ID)
+		if err != nil {
+			b.Fatalf("Error getting metric: %s", err)
+		}
 	}
 }
