@@ -1,4 +1,4 @@
-// Пакет metricpg предоставляет реализацию хранилища метрик с использованием PostgreSQL.
+// Package metricpg предоставляет реализацию хранилища метрик с использованием PostgreSQL.
 package metricpg
 
 import (
