@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
-	_ "net/http/pprof" // подключаем пакет pprof
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -22,7 +22,7 @@ func main() {
 	logger.Log.Info().Interface("cfg", cfg).Msg("agent will send reports to " + cfg.ServerHost)
 
 	go func() {
-		log.Println(http.ListenAndServe("localhost:6061", nil))
+		log.Println(http.ListenAndServe(cfg.ServerHost, nil))
 	}()
 
 	a.Run()

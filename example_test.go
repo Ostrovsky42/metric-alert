@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 
@@ -37,7 +38,10 @@ func ExampleMetricAlerts_UpdateMetricWithBody() {
 }
 
 func ExampleMetricAlerts_UpdateMetricsWithBody() {
-	mockStorage, _ := repository.InitRepo("", "", 40, false)
+	mockStorage, err := repository.InitRepo("", "", 40, false)
+	if err != nil {
+		log.Fatal("err init repo: ", err.Error())
+	}
 
 	var value float64 = 5
 	var valueCount int64 = 5
