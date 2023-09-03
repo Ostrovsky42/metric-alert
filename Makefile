@@ -5,6 +5,9 @@ ci:
 test:
 	go test -cover ./...
 
+analyze:
+	go run cmd/staticlint/main.go -source ./...
+
 build: 	build/agent build/server
 
 build/agent:
