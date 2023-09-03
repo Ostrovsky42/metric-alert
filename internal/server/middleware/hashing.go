@@ -1,3 +1,4 @@
+// Пакет middleware предоставляет промежуточное программное обеспечение для обработки HTTP-запросов.
 package middleware
 
 import (
@@ -8,14 +9,18 @@ import (
 	"metric-alert/internal/hasher"
 )
 
+// HashMiddleware представляет структуру middleware, выполняющего хеширование.
 type HashMiddleware struct {
 	hb hasher.HashBuilder
 }
 
+// NewHashMW создает новый экземпляр HashMiddleware.
 func NewHashMW(signKey string) HashMiddleware {
 	return HashMiddleware{hb: hasher.NewHashGenerator(signKey)}
 }
 
+// Hash если передан хэшер с ключом сравнивает хэш из заголовка с с хэшом  полученного тела HTTP-запроса с использованием переданного ключа.
+// Так же возвращает в заголовке хэш ответа.
 func (h HashMiddleware) Hash(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if h.hb.IsNotActive() {
@@ -32,7 +37,6 @@ func (h HashMiddleware) Hash(next http.Handler) http.Handler {
 		}
 		calculatedHash := h.hb.GetHash(data)
 		if receivedHash != calculatedHash {
-			//	logger.Log.Debug().Str("HashSHA256", receivedHash).Msg("Header from agent")
 			http.Error(w, "Invalid hash", http.StatusBadRequest)
 			return
 		}

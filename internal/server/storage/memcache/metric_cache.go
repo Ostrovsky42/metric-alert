@@ -1,3 +1,4 @@
+// Пакет memcache предоставляет реализацию кеша в памяти для хранения метрик.
 package memcache
 
 import (
@@ -10,11 +11,13 @@ import (
 	"metric-alert/internal/server/storage"
 )
 
+// MemCache представляет кеш в памяти для хранения метрик.
 type MemCache struct {
 	mu      sync.RWMutex
 	storage map[string]entities.Metrics
 }
 
+// MetricCache определяет интерфейс для работы с кешем метрик.
 type MetricCache interface {
 	SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error)
 	SetMetrics(ctx context.Context, metric []entities.Metrics) error
@@ -50,7 +53,7 @@ func (m *MemCache) SetMetric(ctx context.Context, metric entities.Metrics) (*ent
 	return &metric, nil
 }
 
-func (m *MemCache) GetMetric(ctx context.Context, metricID string) (*entities.Metrics, error) {
+func (m *MemCache) GetMetric(_ context.Context, metricID string) (*entities.Metrics, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
@@ -62,14 +65,14 @@ func (m *MemCache) GetMetric(ctx context.Context, metricID string) (*entities.Me
 	return nil, errors.New(storage.NotFound)
 }
 
-func (m *MemCache) GetMetricsByIDs(ctx context.Context, IDs []string) ([]entities.Metrics, error) {
-	var metrics []entities.Metrics
-	IDs = storage.RemoveDuplicatesIDs(IDs)
+func (m *MemCache) GetMetricsByIDs(_ context.Context, ids []string) ([]entities.Metrics, error) {
+	ids = storage.RemoveDuplicatesIDs(ids)
+	metrics := make([]entities.Metrics, 0, len(ids))
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	for _, id := range IDs {
+	for _, id := range ids {
 		metric, ok := m.storage[id]
 		if !ok {
 			return nil, fmt.Errorf("%s by id:%s", storage.NotFound, id)
@@ -81,7 +84,7 @@ func (m *MemCache) GetMetricsByIDs(ctx context.Context, IDs []string) ([]entitie
 	return metrics, nil
 }
 
-func (m *MemCache) GetAllMetric(ctx context.Context) ([]entities.Metrics, error) {
+func (m *MemCache) GetAllMetric(_ context.Context) ([]entities.Metrics, error) {
 	metrics := make([]entities.Metrics, 0, len(m.storage))
 	m.mu.RLock()
 	defer m.mu.RUnlock()
@@ -105,7 +108,7 @@ func (m *MemCache) SetMetrics(ctx context.Context, metrics []entities.Metrics) e
 	return nil
 }
 
-func (m *MemCache) Ping(ctx context.Context) error {
+func (m *MemCache) Ping(_ context.Context) error {
 	return nil
 }
 

@@ -68,6 +68,7 @@ func (a *Agent) sendReport() {
 				if err := a.sender.SendMetric(metric.MType, metric.ID, metric.Value); err != nil {
 					logger.Log.Error().Err(err).Msg("err sendMetric")
 				}
+
 				continue
 			}
 

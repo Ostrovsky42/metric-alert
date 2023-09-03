@@ -7,6 +7,7 @@ import (
 	"metric-alert/internal/server/logger"
 )
 
+// WithLogging добавляет логирование для обработки HTTP-запросов.
 func WithLogging(h http.Handler) http.Handler {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()

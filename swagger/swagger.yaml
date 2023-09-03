@@ -1,0 +1,183 @@
+definitions:
+  entities.Metrics:
+    properties:
+      delta:
+        type: integer
+      id:
+        type: string
+      type:
+        type: string
+      value:
+        type: number
+    type: object
+info:
+  contact: {}
+paths:
+  /:
+    get:
+      description: Get an HTML page with information about metrics
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML content
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+      summary: Get information page
+      tags:
+      - InfoPage
+  /update/:
+    post:
+      consumes:
+      - application/json
+      description: Update metric from request body
+      parameters:
+      - description: Metric data
+        in: body
+        name: metric_data
+        required: true
+        schema:
+          $ref: '#/definitions/entities.Metrics'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.Metrics'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Update metric
+      tags:
+      - UpdateMetric
+  /update/{type}/{name}/{value}/:
+    post:
+      consumes:
+      - application/json
+      description: Update metric by specifying its type, name, and value from path
+      parameters:
+      - description: Metric Type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Metric Name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Metric Value
+        in: path
+        name: value
+        required: true
+        type: number
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Update metrics
+      tags:
+      - UpdateMetric
+  /updates/:
+    post:
+      consumes:
+      - application/json
+      description: Update metrics from request body
+      parameters:
+      - description: Arrays metric data
+        in: body
+        name: metrics_data
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/entities.Metrics'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Metrics'
+            type: array
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Update metrics
+      tags:
+      - UpdateMetric
+  /value:
+    get:
+      description: Get metric from request body
+      parameters:
+      - description: Metric data
+        in: body
+        name: metric_data
+        required: true
+        schema:
+          $ref: '#/definitions/entities.Metrics'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.Metrics'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get metric
+      tags:
+      - GetMetric
+  /value/{type}/{name}:
+    get:
+      description: Get metric value by specifying its type, name, and value from path
+      parameters:
+      - description: Metric Type
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: Metric Name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Metric Value
+        in: path
+        name: value
+        required: true
+        type: number
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.Metrics'
+        "400":
+          description: Bad Request
+        "404":
+          description: Not Found
+        "500":
+          description: Internal Server Error
+      summary: Get metric
+      tags:
+      - GetMetric
+swagger: "2.0"

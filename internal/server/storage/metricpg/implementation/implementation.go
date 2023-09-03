@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v4"
 	"github.com/lib/pq"
+
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/logger"
 	"metric-alert/internal/server/storage"
@@ -61,8 +62,8 @@ func (m *MetricPG) CommitTX(ctx context.Context, tx pgx.Tx) error {
 		rollbackErr := tx.Rollback(ctx)
 		if rollbackErr != nil {
 			logger.Log.Error().Err(rollbackErr).Msg("err rollback tx")
-
 		}
+
 		return err
 	}
 

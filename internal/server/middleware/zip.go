@@ -10,8 +10,7 @@ import (
 )
 
 type ZipMiddleware struct {
-	zContentTypes []string
-	gzipW         *gzip.Writer
+	gzipW *gzip.Writer
 }
 
 func NewZipMiddleware(level int) ZipMiddleware {
@@ -34,6 +33,7 @@ func (w *gzipWriter) Write(b []byte) (int, error) {
 	return w.gzipW.Write(b)
 }
 
+// Zip добавляет сжатие gzip к обработке HTTP-запросов.
 func (z *ZipMiddleware) Zip(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if z.isNeedZipped(r) {
@@ -52,6 +52,7 @@ func (z *ZipMiddleware) Zip(next http.Handler) http.Handler {
 	})
 }
 
+// UnZip добавляет распаковку данных из gzip к обработке HTTP-запросов.
 func (z *ZipMiddleware) UnZip(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
@@ -75,6 +76,7 @@ func (z *ZipMiddleware) UnZip(next http.Handler) http.Handler {
 	})
 }
 
+// isNeedZipped проверяет, нужно ли сжимать данные на основе заголовков запроса.
 func (z *ZipMiddleware) isNeedZipped(r *http.Request) bool {
 	return strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
 }

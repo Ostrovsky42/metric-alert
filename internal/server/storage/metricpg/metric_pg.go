@@ -1,9 +1,11 @@
+// Пакет metricpg предоставляет реализацию хранилища метрик с использованием PostgreSQL.
 package metricpg
 
 import (
 	"context"
-	"github.com/jackc/pgx/v4"
 	"time"
+
+	"github.com/jackc/pgx/v4"
 
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/logger"
@@ -12,8 +14,10 @@ import (
 	"metric-alert/internal/server/storage/metricpg/implementation"
 )
 
+// DefaultQueryTimeout  стандартное время ожидания выполнения запроса к базе данных.
 const DefaultQueryTimeout = time.Second * 15
 
+// MetricDB определяет интерфейс для работы с хранилищем метрик в PostgreSQL.
 type MetricDB interface {
 	SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error)
 	SetMetrics(ctx context.Context, metric []entities.Metrics) error
@@ -27,10 +31,12 @@ type MetricDB interface {
 
 var _ MetricDB = &MetricStoragePG{}
 
+// MetricStoragePG представляет хранилище метрик на основе PostgreSQL.
 type MetricStoragePG struct {
 	implementation.MetricStorage
 }
 
+// NewMetricDB создает новый экземпляр MetricStoragePG с переданным подключением к PostgreSQL.
 func NewMetricDB(pg *db.Postgres) *MetricStoragePG {
 	return &MetricStoragePG{MetricStorage: implementation.NewMetricStorage(pg)}
 }
@@ -144,11 +150,11 @@ func (m *MetricStoragePG) GetMetric(ctx context.Context, metricID string) (*enti
 	return m.MetricStorage.GetMetricByID(ctx, metricID)
 }
 
-func (m *MetricStoragePG) GetMetricsByIDs(ctx context.Context, IDs []string) ([]entities.Metrics, error) {
+func (m *MetricStoragePG) GetMetricsByIDs(ctx context.Context, ids []string) ([]entities.Metrics, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultQueryTimeout)
 	defer cancel()
 
-	return m.MetricStorage.GetMetricsByIDs(ctx, IDs)
+	return m.MetricStorage.GetMetricsByIDs(ctx, ids)
 }
 
 func (m *MetricStoragePG) GetAllMetric(ctx context.Context) ([]entities.Metrics, error) {
