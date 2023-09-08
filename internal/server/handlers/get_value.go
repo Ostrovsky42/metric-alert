@@ -65,7 +65,11 @@ func (m MetricAlerts) GetValueWithBody(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Error write to json response")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 // GetValue предоставляет обработчик для получения метрики по типу, имени и значению из пути.

@@ -4,8 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/stretchr/testify/assert"
+	"log"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	"metric-alert/internal/server/entities"
 )
@@ -137,7 +139,11 @@ func TestMemStorage_SetMetric(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.storage.SetMetric(context.Background(), tt.metric)
+			_, err := tt.storage.SetMetric(context.Background(), tt.metric)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			got, got1 := tt.storage.GetMetric(context.Background(), tt.metricID)
 			assert.Equal(t, got, tt.want)
 			assert.Equal(t, got1, tt.err)
@@ -172,8 +178,10 @@ func BenchmarkGetMetric(b *testing.B) {
 		Delta: new(int64),
 	}
 
-	mc.SetMetric(ctx, metric)
-
+	_, err := mc.SetMetric(ctx, metric)
+	if err != nil {
+		log.Fatal(err)
+	}
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_, err := mc.GetMetric(ctx, metric.ID)

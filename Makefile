@@ -22,7 +22,7 @@ build/server:
 	go build -o ./cmd/server/server \
 	-ldflags "-X main.buildVersion=$(SERVER_VERSION) \
 		  -X main.buildDate=$(shell date '+%H:%M:%S[%Y/%m/%d]') \
-		  -X 'main.buildCommit=$(shell git log --pretty=format:"%h  %s" -n 1)'" \
+		  -X 'main.buildCommit=$(shell git rev-parse HEAD)'" \
 	./cmd/server/*.go
 
 profile/agent:

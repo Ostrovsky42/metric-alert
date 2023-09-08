@@ -20,6 +20,7 @@ import (
 	"honnef.co/go/tools/analysis/lint"
 	"honnef.co/go/tools/staticcheck"
 	"honnef.co/go/tools/stylecheck"
+
 	"metric-alert/cmd/staticlint/exitanalyzer"
 )
 

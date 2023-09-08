@@ -45,7 +45,10 @@ func (f *FileRecorder) RestoreMetrics() {
 		logger.Log.Error().Err(err).Msg("err file Decoder")
 	}
 
-	f.metricCache.SetMetrics(context.Background(), metrics)
+	err = f.metricCache.SetMetrics(context.Background(), metrics)
+	if err != nil {
+		logger.Log.Fatal().Err(err).Msg("err set restored metrics")
+	}
 }
 
 // RecordMetrics сохраняет текущие метрики в файловом хранилище.

@@ -35,7 +35,7 @@ func NewMemCache() *MemCache {
 	return &MemCache{storage: make(map[string]entities.Metrics)}
 }
 
-func (m *MemCache) SetMetric(ctx context.Context, metric entities.Metrics) (*entities.Metrics, error) {
+func (m *MemCache) SetMetric(_ context.Context, metric entities.Metrics) (*entities.Metrics, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 

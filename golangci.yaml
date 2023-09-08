@@ -49,7 +49,6 @@ linters:
     - ineffassign
     - gomnd
     - godot
-    - gochecknoglobals
     - whitespace
   fast: false
 

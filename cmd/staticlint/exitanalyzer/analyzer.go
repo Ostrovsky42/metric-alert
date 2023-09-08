@@ -4,6 +4,7 @@ package exitanalyzer
 
 import (
 	"go/ast"
+
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/ast/astutil"
 )
@@ -24,28 +25,40 @@ func run(pass *analysis.Pass) (interface{}, error) {
 		if o := file.Scope.Objects["examples"]; o != nil && file.Name.String() == "main" {
 			continue
 		}
-		// Используем AST для обхода узлов в дереве синтаксического анализа.
-		ast.Inspect(file, func(n ast.Node) bool {
-			// Проверяем ялвеяется ли узел вызвовом функции
-			if callExpr, ok := n.(*ast.CallExpr); ok {
-				// Порверяем является ли функция селектором
-				if selExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
-					// Проверяем ялвяется ли селекторы вызовом функции os.Exit
-					if ident, ok := selExpr.X.(*ast.Ident); ok &&
-						ident.Name == "os" &&
-						selExpr.Sel.Name == "Exit" {
-						// Проверяем, находится ли вызов функции os.Exit внутри функции main.
-						if isWithinMain(pass, callExpr) {
-							// Создаем диагностическое сообщение, если условие выполняется.
-							pass.Reportf(callExpr.Pos(), "direct call to os.Exit found within main function")
-						}
+		inspectFile(pass, file)
+	}
+	return nil, nil
+}
+
+func inspectFile(pass *analysis.Pass, file *ast.File) {
+	// Используем AST для обхода узлов в дереве синтаксического анализа.
+	ast.Inspect(file, func(n ast.Node) bool {
+		// Проверяем является ли узел вызвовом функции
+		if callExpr, ok := n.(*ast.CallExpr); ok {
+			// Порверяем является ли функция селектором
+			if selExpr, ok := callExpr.Fun.(*ast.SelectorExpr); ok {
+				// Проверяем ялвяется ли селекторы вызовом функции os.Exit
+				if isExitCall(selExpr) {
+					// Проверяем, находится ли вызов функции os.Exit внутри функции main.
+					if isWithinMain(pass, callExpr) {
+						// Создаем диагностическое сообщение, если условие выполняется.
+						pass.Reportf(callExpr.Pos(), "direct call to os.Exit found within main function")
 					}
 				}
 			}
-			return true
-		})
+		}
+		return true
+	})
+}
+
+func isExitCall(selExpr *ast.SelectorExpr) bool {
+	// Проверяем ялвяется ли селекторы вызовом функции os.Exit
+	if ident, ok := selExpr.X.(*ast.Ident); ok &&
+		ident.Name == "os" &&
+		selExpr.Sel.Name == "Exit" {
+		return true
 	}
-	return nil, nil
+	return false
 }
 
 // isWithinMain проверяет, находится ли вызов функции os.Exit внутри функции main.

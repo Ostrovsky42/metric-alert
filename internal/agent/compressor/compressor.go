@@ -1,5 +1,4 @@
 // Package compressor предоставляет функции для сжатия данных с использованием алгоритма сжатия gzip.
-
 package compressor
 
 import (
