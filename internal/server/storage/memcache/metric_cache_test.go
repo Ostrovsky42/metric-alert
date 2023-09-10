@@ -113,6 +113,18 @@ func TestMemStorage_SetMetric(t *testing.T) {
 			err:      nil,
 		},
 		{
+			name: "positive test iter Counter",
+			storage: func() *MemCache {
+				mem := &MemCache{storage: map[string]entities.Metrics{}}
+				mem.storage["metric"] = entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)}
+				return mem
+			}(),
+			metric:   entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
+			metricID: "metric",
+			want:     &entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(110)},
+			err:      nil,
+		},
+		{
 			name:     "negative test",
 			storage:  &MemCache{storage: map[string]entities.Metrics{}},
 			metric:   entities.Metrics{ID: "metric", MType: entities.Counter, Delta: intPointer(55)},
@@ -188,5 +200,42 @@ func BenchmarkGetMetric(b *testing.B) {
 		if err != nil {
 			b.Fatalf("Error getting metric: %s", err)
 		}
+	}
+}
+
+func TestMemCache_GetAllMetric(t *testing.T) {
+	metrics := []entities.Metrics{
+		{
+			ID:    "example_metric_one",
+			MType: entities.Gauge,
+			Delta: new(int64),
+		}, {
+			ID:    "example_metric_two",
+			MType: entities.Gauge,
+			Delta: new(int64),
+		},
+	}
+	tests := []struct {
+		name          string
+		cashedMetrics []entities.Metrics
+		want          []entities.Metrics
+		wantErr       assert.ErrorAssertionFunc
+	}{
+		{
+			name:          "Test OK",
+			cashedMetrics: metrics,
+			want:          metrics,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			m := NewMemCache()
+			err := m.SetMetrics(context.Background(), tt.cashedMetrics)
+			if err != nil {
+				log.Fatal(err)
+			}
+			got, err := m.GetAllMetric(context.Background())
+			assert.Equalf(t, tt.want, got, "GetAllMetric()")
+		})
 	}
 }
