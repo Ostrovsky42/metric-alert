@@ -226,6 +226,11 @@ func TestMemCache_GetAllMetric(t *testing.T) {
 			cashedMetrics: metrics,
 			want:          metrics,
 		},
+		{
+			name:          "Test OK",
+			cashedMetrics: nil,
+			want:          []entities.Metrics{},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -234,7 +239,8 @@ func TestMemCache_GetAllMetric(t *testing.T) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			got, err := m.GetAllMetric(context.Background())
+			got, _ := m.GetAllMetric(context.Background())
+
 			assert.Equalf(t, tt.want, got, "GetAllMetric()")
 		})
 	}
