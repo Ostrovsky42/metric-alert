@@ -1,8 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"html/template"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"metric-alert/internal/server/config"
 	"metric-alert/internal/server/handlers"
@@ -11,6 +17,7 @@ import (
 )
 
 const templatePath = "internal/server/html/templates/info_page.html"
+const shutdownTimeout = 10
 
 type Application struct {
 	metric         handlers.MetricAlerts
@@ -46,9 +53,27 @@ func NewApp(cfg config.Config) Application {
 }
 
 func (a Application) Run() {
-	err := http.ListenAndServe(a.serverHost, NewRoutes(a.metric, a.signKey, a.privateKeyPath))
-	if err != nil {
-		logger.Log.Fatal().Err(err).Msg("Error start serve")
+	s := http.Server{
+		Addr:    a.serverHost,
+		Handler: NewRoutes(a.metric, a.signKey, a.privateKeyPath),
+	}
+
+	shutdownSignal := make(chan os.Signal, 1)
+	signal.Notify(shutdownSignal, syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+
+	go func() {
+		if err := s.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Log.Fatal().Err(err).Msg("Error start serve")
+		}
+	}()
+
+	<-shutdownSignal
+
+	ctx, cancel := context.WithTimeout(context.Background(), shutdownTimeout*time.Second)
+	defer cancel()
+
+	if err := s.Shutdown(ctx); err != nil {
+		logger.Log.Fatal().Err(err).Msg("Error Shutdown server")
 	}
 }
 
