@@ -67,10 +67,10 @@ func parseFlags() Config {
 // CheckJSONConfig проверяет путь к файлу хранящему конфигурацию в формате JSON
 // и если он был передан через флаг или переменную окружения, заполнит не переданные значения данными из файла.
 func CheckJSONConfig(cfg *Config) {
-	if len(cfg.JSONConfig) == 0 {
+	if len(cfg.JSONConfig) != 0 {
 		jsonCfg, err := readJSONConfig(cfg.JSONConfig)
 		if err != nil {
-			logger.Log.Error().Err(err).Msg("error read JSON config")
+			logger.Log.Fatal().Err(err).Msg("error read JSON config")
 		}
 		setJSONConfig(cfg, jsonCfg)
 	}
