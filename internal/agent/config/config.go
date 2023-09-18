@@ -14,6 +14,7 @@ import (
 // Константы для конфигурации по умолчанию.
 const (
 	DefaultServerHost        = "localhost:8080"
+	DefaultProfilerHost      = "localhost:6060"
 	DefaultReportIntervalSec = 10
 	DefaultPollIntervalSec   = 2
 	DefaultSignKey           = ""
@@ -24,6 +25,7 @@ const (
 // Config содержит настройки агента.
 type Config struct {
 	ServerHost        string `json:"server_host" env:"ADDRESS"`                 // ServerHost определяет адрес сервера.
+	ProfilerHost      string `json:"profiler_host" env:"PROFILER_HOST"`         // ProfilerHost Порт на котором будет запускаться сервер для профилирования.
 	ReportIntervalSec int    `json:"report_interval_sec" env:"REPORT_INTERVAL"` // ReportIntervalSec определяет интервал отправки метрик.
 	PollIntervalSec   int    `json:"poll_interval_sec" env:"POLL_INTERVAL"`     // PollIntervalSec определяет интервал опроса метрик.
 	SignKey           string `json:"sign_key" env:"KEY"`                        // SignKey определяет ключ подписи.
@@ -50,12 +52,13 @@ func GetConfig() Config {
 func parseFlags() Config {
 	flagCfg := Config{}
 	flag.StringVar(&flagCfg.ServerHost, "a", DefaultServerHost, "server endpoint address")
+	flag.StringVar(&flagCfg.ProfilerHost, "pp", DefaultProfilerHost, "profiler endpoint address")
 	flag.IntVar(&flagCfg.ReportIntervalSec, "r", DefaultReportIntervalSec, "frequency of sending metrics")
 	flag.IntVar(&flagCfg.PollIntervalSec, "p", DefaultPollIntervalSec, "metric polling frequency")
 	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "includes key signature using an algorithm SHA256")
 	flag.IntVar(&flagCfg.RateLimit, "l", DefaultRateLimit, "number of simultaneously requests to the server")
-	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "путь к файлу с публичным ключом для ассимитричного шифрования")
-	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "путь к файлу конфигурацияй в формате JSON")
+	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "path to the file with the public key for asymmetric encryption")
+	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "path to the configuration file in JSON format")
 
 	flag.Parse()
 

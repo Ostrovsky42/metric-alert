@@ -14,6 +14,7 @@ import (
 // Константы для конфигурации по умолчанию.
 const (
 	DefaultServerHost       = "localhost:8080"
+	DefaultProfilerHost     = "localhost:6061"
 	DefaultStoreIntervalSec = 300
 	DefaultFileStoragePath  = "/tmp/metrics-db.json"
 	DefaultDataBaseDSN      = ""
@@ -25,6 +26,7 @@ const (
 // Config представляет конфигурацию сервера.
 type Config struct {
 	ServerHost       string `json:"server_host" env:"ADDRESS"`                 // ServerHost Адрес работы сервера.
+	ProfilerHost     string `json:"profiler_host" env:"PROFILER_HOST"`         // ProfilerHost Порт на котором будет запускаться сервер для профилирования.
 	StoreIntervalSec int    `json:"store_interval_sec" env:"STORE_INTERVAL"`   // StoreIntervalSec Интервал записи метрик.
 	FileStoragePath  string `json:"file_storage_path" env:"FILE_STORAGE_PATH"` // FileStoragePath Путь к файлу для записи метрик.
 	DataBaseDSN      string `json:"data_base_dsn" env:"DATABASE_DSN"`          // DataBaseDSN Строка подключения к базе данных.
@@ -50,14 +52,15 @@ func GetConfig() Config {
 // parseFlags разбирает флаги командной строки и возвращает  настройки сервера.
 func parseFlags() Config {
 	flagCfg := Config{}
-	flag.StringVar(&flagCfg.ServerHost, "a", DefaultServerHost, "хост конечной точки сервера")
-	flag.IntVar(&flagCfg.StoreIntervalSec, "i", DefaultStoreIntervalSec, "интервал записи показаний сервера на диск")
-	flag.StringVar(&flagCfg.FileStoragePath, "f", DefaultFileStoragePath, "путь к файлу для записи показаний")
-	flag.StringVar(&flagCfg.DataBaseDSN, "d", DefaultDataBaseDSN, "строка с адресом подключения к базе данных")
-	flag.BoolVar(&flagCfg.Restore, "r", DefaultRestore, "загружать сохраненные значения из указанного файла при запуске")
-	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "ключ для подписи с использованием алгоритма SHA256")
-	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "путь к файлу с приватным ключом для ассимитричного шифрования")
-	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "путь к файлу конфигурацияй в формате JSON")
+	flag.StringVar(&flagCfg.ServerHost, "a", DefaultServerHost, "host of the server endpoint")
+	flag.StringVar(&flagCfg.ProfilerHost, "pp", DefaultProfilerHost, "profiler endpoint address")
+	flag.IntVar(&flagCfg.StoreIntervalSec, "i", DefaultStoreIntervalSec, "interval for writing server metrics to disk")
+	flag.StringVar(&flagCfg.FileStoragePath, "f", DefaultFileStoragePath, "path to the file for storing metrics")
+	flag.StringVar(&flagCfg.DataBaseDSN, "d", DefaultDataBaseDSN, "database connection string")
+	flag.BoolVar(&flagCfg.Restore, "r", DefaultRestore, "load saved values from the specified file when starting")
+	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "key for signing using SHA256 algorithm")
+	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "path to the file with a private key for asymmetric encryption")
+	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "path to the configuration file in JSON format")
 
 	flag.Parse()
 
