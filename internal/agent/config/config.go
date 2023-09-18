@@ -2,7 +2,9 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
+	"os"
 
 	"metric-alert/internal/server/logger"
 
@@ -16,17 +18,18 @@ const (
 	DefaultPollIntervalSec   = 2
 	DefaultSignKey           = ""
 	DefaultRateLimit         = 1
-	DefaultCryptoKeyPath     = ""
+	DefaultPath              = ""
 )
 
 // Config содержит настройки агента.
 type Config struct {
-	ServerHost        string `env:"ADDRESS"`         // ServerHost определяет адрес сервера.
-	ReportIntervalSec int    `env:"REPORT_INTERVAL"` // ReportIntervalSec определяет интервал отправки метрик.
-	PollIntervalSec   int    `env:"POLL_INTERVAL"`   // PollIntervalSec определяет интервал опроса метрик.
-	SignKey           string `env:"KEY"`             // SignKey определяет ключ подписи.
-	RateLimit         int    `env:"RATE_LIMIT"`      // RateLimit определяет ограничение скорости запросов к серверу.
-	CryptoKey         string `env:"CRYPTO_KEY"`      // CryptoKey Публичный ключ для использования асиметричного шифрования.
+	ServerHost        string `json:"server_host" env:"ADDRESS"`                 // ServerHost определяет адрес сервера.
+	ReportIntervalSec int    `json:"report_interval_sec" env:"REPORT_INTERVAL"` // ReportIntervalSec определяет интервал отправки метрик.
+	PollIntervalSec   int    `json:"poll_interval_sec" env:"POLL_INTERVAL"`     // PollIntervalSec определяет интервал опроса метрик.
+	SignKey           string `json:"sign_key" env:"KEY"`                        // SignKey определяет ключ подписи.
+	RateLimit         int    `json:"rate_limit" env:"RATE_LIMIT"`               // RateLimit определяет ограничение скорости запросов к серверу.
+	CryptoKey         string `json:"crypto_key" env:"CRYPTO_KEY"`               // CryptoKey Публичный ключ для использования асиметричного шифрования.
+	JSONConfig        string `json:"json_config" env:"CONFIG"`                  // JSONConfig Путь к файлу конфигурацияй в формате JSON (самй низкий приоритет)
 }
 
 // GetConfig возвращает настройки агента, считываемые из флагов командной строки и переменных окружения.
@@ -37,6 +40,8 @@ func GetConfig() Config {
 	if err != nil {
 		logger.Log.Fatal().Msg("err parse environment variable to agent config")
 	}
+
+	CheckJSONConfig(&cfg)
 
 	return cfg
 }
@@ -49,9 +54,57 @@ func parseFlags() Config {
 	flag.IntVar(&flagCfg.PollIntervalSec, "p", DefaultPollIntervalSec, "metric polling frequency")
 	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "includes key signature using an algorithm SHA256")
 	flag.IntVar(&flagCfg.RateLimit, "l", DefaultRateLimit, "number of simultaneously requests to the server")
-	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultCryptoKeyPath, "путь к файлу с публичным ключом для ассимитричного шифрования")
+	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "путь к файлу с публичным ключом для ассимитричного шифрования")
+	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "путь к файлу конфигурацияй в формате JSON")
 
 	flag.Parse()
 
 	return flagCfg
+}
+
+// CheckJSONConfig проверяет путь к файлу хранящему конфигурацию в формате JSON
+// и если он был передан через флаг или переменную окружения, заполнит не переданные значения данными из файла.
+func CheckJSONConfig(cfg *Config) {
+	if len(cfg.JSONConfig) == 0 {
+		jsonCfg, err := readJSONConfig(cfg.JSONConfig)
+		if err != nil {
+			logger.Log.Error().Err(err).Msg("error read JSON config")
+		}
+		setJSONConfig(cfg, jsonCfg)
+	}
+}
+
+func readJSONConfig(path string) (Config, error) {
+	var cfg Config
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return Config{}, err
+	}
+	err = json.Unmarshal(data, &cfg)
+	if err != nil {
+		return Config{}, err
+	}
+
+	return cfg, nil
+}
+
+func setJSONConfig(config *Config, jsonConfig Config) {
+	if config.ServerHost == DefaultServerHost {
+		config.ServerHost = jsonConfig.ServerHost
+	}
+	if config.ReportIntervalSec == DefaultReportIntervalSec {
+		config.ReportIntervalSec = jsonConfig.ReportIntervalSec
+	}
+	if config.PollIntervalSec == DefaultPollIntervalSec {
+		config.PollIntervalSec = jsonConfig.PollIntervalSec
+	}
+	if config.RateLimit == DefaultRateLimit {
+		config.RateLimit = jsonConfig.RateLimit
+	}
+	if config.SignKey == DefaultSignKey {
+		config.SignKey = jsonConfig.SignKey
+	}
+	if config.CryptoKey == DefaultPath {
+		config.CryptoKey = jsonConfig.CryptoKey
+	}
 }
