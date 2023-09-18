@@ -1,17 +1,29 @@
-
+	AGENT_VERSION=v1.20
+	SERVER_VERSION=v1.20
 ci:
 	golangci-lint run -v -c golangci.yaml
 
 test:
 	go test -cover ./...
 
+analyze:
+	go run cmd/staticlint/main.go -source ./...
+
 build: 	build/agent build/server
 
 build/agent:
-	go build -o ./cmd/agent/agent ./cmd/agent/*.go
+	go build -o ./cmd/agent/agent \
+	-ldflags "-X main.buildVersion=$(AGENT_VERSION) \
+		  -X main.buildDate=$(shell date '+%H:%M:%S[%Y/%m/%d]') \
+		  -X 'main.buildCommit=$(shell git log --pretty=format:"%h  %s" -n 1)'" \
+	./cmd/agent/*.go
 
 build/server:
-	go build -o ./cmd/server/server  ./cmd/server/*.go
+	go build -o ./cmd/server/server \
+	-ldflags "-X main.buildVersion=$(SERVER_VERSION) \
+		  -X main.buildDate=$(shell date '+%H:%M:%S[%Y/%m/%d]') \
+		  -X 'main.buildCommit=$(shell git rev-parse HEAD)'" \
+	./cmd/server/*.go
 
 profile/agent:
 	go tool pprof -http=":9091" -seconds=30 http://localhost:6061/debug/pprof/profile

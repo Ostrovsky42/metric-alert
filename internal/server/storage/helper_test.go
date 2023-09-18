@@ -2,6 +2,7 @@ package storage
 
 import (
 	"metric-alert/internal/server/entities"
+	"reflect"
 	"testing"
 )
 
@@ -32,5 +33,49 @@ func BenchmarkRemoveDuplicatesIDs(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		_ = RemoveDuplicatesIDs(idsToRemoveDuplicates)
+	}
+}
+
+func TestSortMetric(t *testing.T) {
+	tests := []struct {
+		name    string
+		metrics []entities.Metrics
+		want    []entities.Metrics
+	}{
+		{
+			name: "Test sort 1",
+			metrics: []entities.Metrics{
+				{ID: "Poll", MType: "Counter"},
+				{ID: "Allo", MType: "Gauge"},
+				{ID: "Alloc", MType: "Gauge"},
+			},
+			want: []entities.Metrics{
+				{ID: "Allo", MType: "Gauge"},
+				{ID: "Alloc", MType: "Gauge"},
+				{ID: "Poll", MType: "Counter"},
+			},
+		},
+		{
+			name: "Test sort 2",
+			metrics: []entities.Metrics{
+				{ID: "Allo", MType: "Gauge"},
+				{ID: "Poll", MType: "Counter"},
+				{ID: "Alloc", MType: "Gauge"},
+			},
+			want: []entities.Metrics{
+				{ID: "Allo", MType: "Gauge"},
+				{ID: "Alloc", MType: "Gauge"},
+				{ID: "Poll", MType: "Counter"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			SortMetric(tt.metrics)
+			if !reflect.DeepEqual(tt.metrics, tt.want) {
+				t.Errorf("SortMetric() = %v, want %v", tt.metrics, tt.want)
+			}
+		})
 	}
 }

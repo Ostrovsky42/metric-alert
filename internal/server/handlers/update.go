@@ -1,4 +1,4 @@
-// Пакет handlers предоставляет обработчики HTTP-запросов для работы с метриками.
+// Package handlers предоставляет обработчики HTTP-запросов для работы с метриками.
 package handlers
 
 import (
@@ -102,7 +102,11 @@ func (m MetricAlerts) UpdateMetricWithBody(w http.ResponseWriter, r *http.Reques
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(data)
+	_, err = w.Write(data)
+	if err != nil {
+		logger.Log.Error().Err(err).Msg("Error write to json response")
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
 // UpdateMetricsWithBody предоставляет обработчик для обновления метрик из тела запроса.

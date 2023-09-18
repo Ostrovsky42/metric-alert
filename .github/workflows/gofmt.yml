@@ -1,0 +1,20 @@
+name: gofmt
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  gofmt:
+    name: Check Go Code Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check Go Code Formatting
+        run: gofmt -s -l .

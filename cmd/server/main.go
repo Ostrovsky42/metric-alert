@@ -1,17 +1,15 @@
 package main
 
 import (
-	_ "net/http/pprof" // подключаем пакет pprof
-
 	"log"
 	"metric-alert/internal/server/config"
 	"metric-alert/internal/server/logger"
 	"net/http"
+	_ "net/http/pprof" // подключаем пакет pprof
 )
 
 func main() {
 	logger.InitLogger()
-
 	cfg := config.GetConfig()
 
 	a := NewApp(cfg)

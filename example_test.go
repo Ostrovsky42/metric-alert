@@ -71,7 +71,10 @@ func ExampleMetricAlerts_UpdateMetricsWithBody() {
 }
 
 func ExampleMetricAlerts_GetValueWithBody() {
-	mockStorage, _ := repository.InitRepo("", "", 40, false)
+	mockStorage, err := repository.InitRepo("", "", 40, false)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	var value float64 = 5
 	testMetric := entities.Metrics{
@@ -80,7 +83,11 @@ func ExampleMetricAlerts_GetValueWithBody() {
 		Value: &value,
 	}
 
-	mockStorage.SetMetric(context.Background(), testMetric)
+	_, err = mockStorage.SetMetric(context.Background(), testMetric)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	data, _ := json.Marshal(testMetric)
 
 	req := httptest.NewRequest(http.MethodGet, "/value/", bytes.NewReader(data))
