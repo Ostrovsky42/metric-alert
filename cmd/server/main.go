@@ -10,6 +10,8 @@ import (
 
 func main() {
 	logger.InitLogger()
+	printBuildInfo()
+
 	cfg := config.GetConfig()
 
 	a := NewApp(cfg)

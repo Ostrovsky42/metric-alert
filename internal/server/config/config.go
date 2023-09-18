@@ -17,6 +17,7 @@ const (
 	DefaultDataBaseDSN      = ""
 	DefaultRestore          = true
 	DefaultSignKey          = ""
+	DefaultCryptoKeyPath    = ""
 )
 
 // Config представляет конфигурацию сервера.
@@ -27,6 +28,7 @@ type Config struct {
 	DataBaseDSN      string `env:"DATABASE_DSN"`      // DataBaseDSN Строка подключения к базе данных.
 	Restore          bool   `env:"RESTORE"`           // Restore Загружать ли сохраненные значения из файла при запуске.
 	SignKey          string `env:"KEY"`               // SignKey Ключ для подписи с использованием алгоритма SHA256.
+	CryptoKey        string `env:"CRYPTO_KEY"`        // CryptoKey Приватный ключ для использования асиметричного шифрования.
 }
 
 // GetConfig возвращает настройки сервера, считываемые из флагов командной строки и переменных окружения.
@@ -50,6 +52,7 @@ func parseFlags() Config {
 	flag.StringVar(&flagCfg.DataBaseDSN, "d", DefaultDataBaseDSN, "строка с адресом подключения к базе данных")
 	flag.BoolVar(&flagCfg.Restore, "r", DefaultRestore, "загружать сохраненные значения из указанного файла при запуске")
 	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "ключ для подписи с использованием алгоритма SHA256")
+	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultCryptoKeyPath, "путь к файлу с приватным ключом для ассимитричного шифрования")
 
 	flag.Parse()
 

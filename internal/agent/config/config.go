@@ -16,6 +16,7 @@ const (
 	DefaultPollIntervalSec   = 2
 	DefaultSignKey           = ""
 	DefaultRateLimit         = 1
+	DefaultCryptoKeyPath     = ""
 )
 
 // Config содержит настройки агента.
@@ -25,6 +26,7 @@ type Config struct {
 	PollIntervalSec   int    `env:"POLL_INTERVAL"`   // PollIntervalSec определяет интервал опроса метрик.
 	SignKey           string `env:"KEY"`             // SignKey определяет ключ подписи.
 	RateLimit         int    `env:"RATE_LIMIT"`      // RateLimit определяет ограничение скорости запросов к серверу.
+	CryptoKey         string `env:"CRYPTO_KEY"`      // CryptoKey Публичный ключ для использования асиметричного шифрования.
 }
 
 // GetConfig возвращает настройки агента, считываемые из флагов командной строки и переменных окружения.
@@ -47,6 +49,7 @@ func parseFlags() Config {
 	flag.IntVar(&flagCfg.PollIntervalSec, "p", DefaultPollIntervalSec, "metric polling frequency")
 	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "includes key signature using an algorithm SHA256")
 	flag.IntVar(&flagCfg.RateLimit, "l", DefaultRateLimit, "number of simultaneously requests to the server")
+	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultCryptoKeyPath, "путь к файлу с публичным ключом для ассимитричного шифрования")
 
 	flag.Parse()
 
