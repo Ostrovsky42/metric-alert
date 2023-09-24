@@ -79,21 +79,21 @@ func CheckJSONConfig(cfg *Config) {
 	}
 }
 
-func readJSONConfig(path string) (Config, error) {
+func readJSONConfig(path string) (*Config, error) {
 	var cfg Config
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return Config{}, err
+		return nil, err
 	}
 	err = json.Unmarshal(data, &cfg)
 	if err != nil {
-		return Config{}, err
+		return nil, err
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }
 
-func setJSONConfig(config *Config, jsonConfig Config) {
+func setJSONConfig(config *Config, jsonConfig *Config) {
 	if config.ServerHost == DefaultServerHost {
 		config.ServerHost = jsonConfig.ServerHost
 	}

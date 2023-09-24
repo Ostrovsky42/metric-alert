@@ -9,8 +9,8 @@ import (
 
 // Encryptor представляет шифратор, который может шифровать данные с использованием гибридного шифрования.
 type Encryptor struct {
-	Asymmetric   asymmetric.Encryptor
-	Symmetric    symmetric.Symmetric
+	Asymmetric   *asymmetric.Encryptor
+	Symmetric    *symmetric.Symmetric
 	EncryptedKey string
 	isIncluded   bool
 }

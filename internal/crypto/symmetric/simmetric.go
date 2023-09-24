@@ -27,21 +27,21 @@ func GetRandKey() ([]byte, error) {
 	return symKey, nil
 }
 
-func NewGCM(key []byte) (Symmetric, error) {
+func NewGCM(key []byte) (*Symmetric, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return Symmetric{}, err
+		return nil, err
 	}
 
 	aesGCM, err := cipher.NewGCM(block)
 	if err != nil {
-		return Symmetric{}, err
+		return nil, err
 	}
 
-	return Symmetric{AEAD: aesGCM, key: key}, nil
+	return &Symmetric{AEAD: aesGCM, key: key}, nil
 }
 
-func (s Symmetric) Encrypt(plainText []byte) ([]byte, []byte, error) {
+func (s *Symmetric) Encrypt(plainText []byte) ([]byte, []byte, error) {
 	iv := make([]byte, InitializationVectorSize)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
 		return nil, nil, err
@@ -51,10 +51,10 @@ func (s Symmetric) Encrypt(plainText []byte) ([]byte, []byte, error) {
 	return cipherText, iv, nil
 }
 
-func (s Symmetric) Decript(cipherText, iv []byte) ([]byte, error) {
+func (s *Symmetric) Decript(cipherText, iv []byte) ([]byte, error) {
 	return s.AEAD.Open(nil, iv, cipherText, nil)
 }
 
-func (s Symmetric) IsNotCreated() bool {
+func (s *Symmetric) IsNotCreated() bool {
 	return len(s.key) == 0
 }

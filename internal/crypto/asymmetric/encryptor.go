@@ -9,17 +9,19 @@ import (
 	"os"
 )
 
+const PublicKey = "PUBLIC KEY"
+
 type Encryptor struct {
 	*rsa.PublicKey
 }
 
-func NewEncryptor(path string) (Encryptor, error) {
+func NewEncryptor(path string) (*Encryptor, error) {
 	key, err := readPublicKeyFromFile(path)
 	if err != nil {
-		return Encryptor{}, err
+		return nil, err
 	}
 
-	return Encryptor{PublicKey: key}, nil
+	return &Encryptor{PublicKey: key}, nil
 }
 
 func (e *Encryptor) Encrypt(plaintext []byte) ([]byte, error) {
@@ -37,7 +39,7 @@ func readPublicKeyFromFile(filename string) (*rsa.PublicKey, error) {
 	}
 
 	block, _ := pem.Decode(publicKeyPEM)
-	if block == nil || block.Type != "PUBLIC KEY" {
+	if block == nil || block.Type != PublicKey {
 		return nil, errors.New("invalid PEM block")
 	}
 

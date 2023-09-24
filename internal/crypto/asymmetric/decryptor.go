@@ -9,17 +9,19 @@ import (
 	"os"
 )
 
+const PrivateKey = "PRIVATE KEY"
+
 type Decryptor struct {
 	*rsa.PrivateKey
 }
 
-func NewDecryptor(path string) (Decryptor, error) {
+func NewDecryptor(path string) (*Decryptor, error) {
 	key, err := readPrivateKeyFromFile(path)
 	if err != nil {
-		return Decryptor{}, err
+		return nil, err
 	}
 
-	return Decryptor{key}, nil
+	return &Decryptor{key}, nil
 }
 
 func (d *Decryptor) Decrypt(ciphertext []byte) ([]byte, error) {
@@ -38,7 +40,7 @@ func readPrivateKeyFromFile(filename string) (*rsa.PrivateKey, error) {
 	}
 
 	block, _ := pem.Decode(privateKeyPEM)
-	if block == nil || block.Type != "PRIVATE KEY" {
+	if block == nil || block.Type != PrivateKey {
 		return nil, errors.New("invalid PEM block")
 	}
 

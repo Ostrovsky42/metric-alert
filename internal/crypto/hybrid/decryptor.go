@@ -12,8 +12,8 @@ import (
 // Decryptor представляет декриптор, который может расшифровывать данные с
 // использованием гибридного шифрования.
 type Decryptor struct {
-	Asymmetric asymmetric.Decryptor
-	symmetric.Symmetric
+	Asymmetric *asymmetric.Decryptor
+	*symmetric.Symmetric
 	isIncluded bool
 }
 
