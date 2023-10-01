@@ -9,14 +9,15 @@ import (
 	"metric-alert/internal/server/middleware"
 )
 
-func NewRoutes(metric handlers.MetricAlerts, signKey string, path string) *chi.Mux {
+func NewRoutes(metric handlers.MetricAlerts, signKey, path, subnet string) *chi.Mux {
 	r := chi.NewRouter()
 
 	zipMW := middleware.NewZipMiddleware(gzip.BestSpeed)
 	hashMW := middleware.NewHashMW(signKey)
 	decryptorMW := middleware.NewDecryptorMW(path)
+	ipMW := middleware.NewTrustedSubnetMW(subnet)
 
-	r.Use(middleware.WithLogging, zipMW.UnZip, decryptorMW.Decrypt, hashMW.Hash, zipMW.Zip)
+	r.Use(middleware.WithLogging, ipMW.Apply, zipMW.UnZip, decryptorMW.Decrypt, hashMW.Hash, zipMW.Zip)
 
 	r.Post(`/update/`, metric.UpdateMetricWithBody)
 	r.Post(`/updates/`, metric.UpdateMetricsWithBody)

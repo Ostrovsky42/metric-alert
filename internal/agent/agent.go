@@ -22,9 +22,9 @@ type Agent struct {
 	wg             sync.WaitGroup
 }
 
-func NewAgent(cfg config.Config) *Agent {
+func NewAgent(cfg *config.Config) *Agent {
 	return &Agent{
-		sender:         metricsender.NewMetricSender(cfg.ServerHost, cfg.SignKey, cfg.CryptoKey),
+		sender:         metricsender.NewMetricSender(cfg.ServerHost, cfg.LocalIP, cfg.SignKey, cfg.CryptoKey),
 		gatherer:       gatherer.NewGatherer(cfg.PollIntervalSec),
 		reportInterval: time.Duration(cfg.ReportIntervalSec) * time.Second,
 		rateLimit:      cfg.RateLimit,

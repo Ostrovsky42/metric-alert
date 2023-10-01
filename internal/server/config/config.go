@@ -20,6 +20,7 @@ const (
 	DefaultDataBaseDSN      = ""
 	DefaultRestore          = true
 	DefaultSignKey          = ""
+	DefaultTrustedSubnet    = ""
 	DefaultPath             = ""
 )
 
@@ -33,12 +34,13 @@ type Config struct {
 	Restore          bool   `json:"restore" env:"RESTORE"`                     // Restore Загружать ли сохраненные значения из файла при запуске.
 	SignKey          string `json:"sign_key" env:"KEY"`                        // SignKey Ключ для подписи с использованием алгоритма SHA256.
 	CryptoKey        string `json:"crypto_key" env:"CRYPTO_KEY"`               // CryptoKey Приватный ключ для использования асиметричного шифрования.
+	TrustedSubnet    string `json:"trusted_subnet" env:"TRUSTED_SUBNET"`       // TrustedSubnet Доверенная подсеть CIDR.
 	JSONConfig       string `json:"json_config" env:"CONFIG"`                  // JSONConfig Путь к файлу конфигурацияй в формате JSON (самй низкий приоритет)
 }
 
 // GetConfig возвращает настройки сервера, считываемые из флагов командной строки и переменных окружения.
 // Если переменные не предоставлены, будут использованы значения по умолчанию.
-func GetConfig() Config {
+func GetConfig() *Config {
 	cfg := parseFlags()
 	err := env.Parse(&cfg)
 	if err != nil {
@@ -46,7 +48,7 @@ func GetConfig() Config {
 	}
 	CheckJSONConfig(&cfg)
 
-	return cfg
+	return &cfg
 }
 
 // parseFlags разбирает флаги командной строки и возвращает  настройки сервера.
@@ -60,6 +62,7 @@ func parseFlags() Config {
 	flag.BoolVar(&flagCfg.Restore, "r", DefaultRestore, "load saved values from the specified file when starting")
 	flag.StringVar(&flagCfg.SignKey, "k", DefaultSignKey, "key for signing using SHA256 algorithm")
 	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "path to the file with a private key for asymmetric encryption")
+	flag.StringVar(&flagCfg.TrustedSubnet, "t", DefaultTrustedSubnet, "trusted subnet CIDR")
 	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "path to the configuration file in JSON format")
 
 	flag.Parse()

@@ -24,10 +24,11 @@ type MetricSender struct {
 	hashBuilder       hasher.HashBuilder
 	encryptor         *hybrid.Encryptor
 	serverURL         string
+	localIP           string
 	attemptsIntervals []int
 }
 
-func NewMetricSender(serverURL string, signKey string, cryptoKeyPath string) *MetricSender {
+func NewMetricSender(serverURL string, localIP string, signKey string, cryptoKeyPath string) *MetricSender {
 	encryptor, err := hybrid.NewEncryptor(cryptoKeyPath)
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("err create encryptor")
@@ -38,6 +39,7 @@ func NewMetricSender(serverURL string, signKey string, cryptoKeyPath string) *Me
 		hashBuilder:       hasher.NewHashGenerator(signKey),
 		encryptor:         encryptor,
 		serverURL:         "http://" + serverURL,
+		localIP:           localIP,
 		attemptsIntervals: []int{1, 3, 5},
 	}
 }
@@ -48,7 +50,6 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 
 		return nil
 	}
-
 	data, err := json.Marshal(metrics)
 	if err != nil {
 		return fmt.Errorf("json.Marshal :%w", err)
@@ -72,6 +73,7 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
+	req.Header.Set("X-Real-IP", s.localIP)
 	s.signRequest(data, iv, req)
 
 	var resp *http.Response

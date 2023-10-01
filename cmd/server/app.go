@@ -25,9 +25,10 @@ type Application struct {
 	serverHost     string
 	signKey        string
 	privateKeyPath string
+	subnet         string
 }
 
-func NewApp(cfg config.Config) Application {
+func NewApp(cfg *config.Config) Application {
 	memRepo, err := repository.InitRepo(
 		cfg.FileStoragePath,
 		cfg.DataBaseDSN,
@@ -49,13 +50,14 @@ func NewApp(cfg config.Config) Application {
 		serverHost:     cfg.ServerHost,
 		signKey:        cfg.SignKey,
 		privateKeyPath: cfg.CryptoKey,
+		subnet:         cfg.TrustedSubnet,
 	}
 }
 
 func (a Application) Run() {
 	s := http.Server{
 		Addr:    a.serverHost,
-		Handler: NewRoutes(a.metric, a.signKey, a.privateKeyPath),
+		Handler: NewRoutes(a.metric, a.signKey, a.privateKeyPath, a.subnet),
 	}
 
 	shutdownSignal := make(chan os.Signal, 1)
