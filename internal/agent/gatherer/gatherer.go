@@ -17,7 +17,7 @@ import (
 // Gatherer представляет сборщик метрик и их хранилище.
 type Gatherer struct {
 	Metrics      map[int]Metrics
-	pollInterval time.Duration
+	PollInterval time.Duration
 	mu           sync.RWMutex
 }
 
@@ -25,7 +25,7 @@ type Gatherer struct {
 func NewGatherer(pollInterval int) *Gatherer {
 	return &Gatherer{
 		Metrics:      make(map[int]Metrics, DefaultMetricCount),
-		pollInterval: time.Duration(pollInterval) * time.Second,
+		PollInterval: time.Duration(pollInterval) * time.Second,
 	}
 }
 
@@ -103,18 +103,5 @@ func (g *Gatherer) GetMetricToSend() []Metrics {
 	for _, metric := range g.Metrics {
 		metrics = append(metrics, metric)
 	}
-
 	return metrics
-}
-
-// StartMetricsGatherer запускает сбор метрик в фоновом режиме.
-func (g *Gatherer) StartMetricsGatherer() {
-	ticker := time.NewTicker(g.pollInterval)
-	defer ticker.Stop()
-	var delta int64
-
-	for range ticker.C {
-		go g.GatherRuntimeMetrics(&delta)
-		go g.GatherMemoryMetrics()
-	}
 }

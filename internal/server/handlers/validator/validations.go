@@ -57,7 +57,7 @@ func ValidateUpdate(metric *entities.Metrics, mValue string) error {
 		return errEmptyMetricType
 	}
 
-	if metric.MType == "" {
+	if metric.ID == "" {
 		return errEmptyMetricName
 	}
 

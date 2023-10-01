@@ -1,6 +1,7 @@
 package metricsender
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,6 +11,8 @@ import (
 
 	"metric-alert/internal/agent/compressor"
 	"metric-alert/internal/agent/gatherer"
+	"metric-alert/internal/crypto/hybrid"
+	"metric-alert/internal/crypto/symmetric"
 	"metric-alert/internal/hasher"
 	"metric-alert/internal/server/logger"
 )
@@ -19,14 +22,21 @@ const numberOfAttempts = 3
 type MetricSender struct {
 	client            *http.Client
 	hashBuilder       hasher.HashBuilder
+	encryptor         *hybrid.Encryptor
 	serverURL         string
 	attemptsIntervals []int
 }
 
-func NewMetricSender(serverURL string, signKey string) *MetricSender {
+func NewMetricSender(serverURL string, signKey string, cryptoKeyPath string) *MetricSender {
+	encryptor, err := hybrid.NewEncryptor(cryptoKeyPath)
+	if err != nil {
+		logger.Log.Fatal().Err(err).Msg("err create encryptor")
+	}
+
 	return &MetricSender{
 		client:            &http.Client{},
 		hashBuilder:       hasher.NewHashGenerator(signKey),
+		encryptor:         encryptor,
 		serverURL:         "http://" + serverURL,
 		attemptsIntervals: []int{1, 3, 5},
 	}
@@ -44,6 +54,14 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 		return fmt.Errorf("json.Marshal :%w", err)
 	}
 	metricURL := fmt.Sprintf("%s/updates/", s.serverURL)
+
+	var iv []byte
+	if s.encryptor.Included() {
+		data, iv, err = s.encryptor.Symmetric.Encrypt(data)
+		if err != nil {
+			return fmt.Errorf("encryptor.Encrypt :%w", err)
+		}
+	}
 	compressed, err := compressor.CompressData(data)
 	if err != nil {
 		return fmt.Errorf("compressor.CompressData :%w", err)
@@ -54,7 +72,7 @@ func (s *MetricSender) SendMetricPackJSON(metrics []gatherer.Metrics) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Content-Encoding", "gzip")
-	s.signRequest(data, req)
+	s.signRequest(data, iv, req)
 
 	var resp *http.Response
 	for i := 0; i < numberOfAttempts; i++ {
@@ -130,7 +148,11 @@ func (s *MetricSender) SendMetric(mType string, name string, value interface{}) 
 	return nil
 }
 
-func (s *MetricSender) signRequest(data []byte, req *http.Request) {
+func (s *MetricSender) signRequest(data, iv []byte, req *http.Request) {
+	if s.encryptor.Included() {
+		req.Header.Set(symmetric.HeaderSymmetricKey, s.encryptor.EncryptedKey)
+		req.Header.Set(symmetric.HeaderInitializationVector, base64.StdEncoding.EncodeToString(iv))
+	}
 	if s.hashBuilder.IsNotActive() {
 		return
 	}

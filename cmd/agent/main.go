@@ -4,9 +4,6 @@ import (
 	"log"
 	"net/http"
 	_ "net/http/pprof"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"metric-alert/internal/agent"
 	"metric-alert/internal/agent/config"
@@ -15,6 +12,7 @@ import (
 
 func main() {
 	logger.InitLogger()
+	printBuildInfo()
 
 	cfg := config.GetConfig()
 
@@ -22,11 +20,8 @@ func main() {
 	logger.Log.Info().Interface("cfg", cfg).Msg("agent will send reports to " + cfg.ServerHost)
 
 	go func() {
-		log.Println(http.ListenAndServe(cfg.ServerHost, nil))
+		log.Println(http.ListenAndServe(cfg.ProfilerHost, nil))
 	}()
 
 	a.Run()
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, syscall.SIGINT, syscall.SIGTERM)
-	<-done
 }

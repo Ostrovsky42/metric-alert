@@ -1,4 +1,3 @@
-// nolint:gochecknoinits
 package main
 
 import "fmt"
@@ -9,6 +8,6 @@ var buildCommit = defaultValue
 
 const defaultValue = "N/A"
 
-func init() {
+func printBuildInfo() {
 	fmt.Printf("Build version: %s\nBuild date: %s\nBuild commit: %s\n", buildVersion, buildDate, buildCommit)
 }

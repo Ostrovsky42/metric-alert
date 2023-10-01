@@ -10,6 +10,8 @@ import (
 
 func main() {
 	logger.InitLogger()
+	printBuildInfo()
+
 	cfg := config.GetConfig()
 
 	a := NewApp(cfg)
@@ -17,7 +19,7 @@ func main() {
 	logger.Log.Info().Interface("cfg", cfg).Msg("server start on " + cfg.ServerHost)
 
 	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
+		log.Println(http.ListenAndServe(cfg.ProfilerHost, nil))
 	}()
 
 	a.Run()
