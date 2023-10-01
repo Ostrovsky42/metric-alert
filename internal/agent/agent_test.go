@@ -39,7 +39,7 @@ func TestSendMetric(t *testing.T) {
 	if err != nil {
 		return
 	}
-	cfg := config.Config{
+	cfg := &config.Config{
 		ServerHost:        testURL.Host,
 		ReportIntervalSec: 10,
 		PollIntervalSec:   2,
