@@ -22,6 +22,7 @@ const (
 	DefaultSignKey          = ""
 	DefaultTrustedSubnet    = ""
 	DefaultPath             = ""
+	DefaultHTTP             = false
 )
 
 // Config представляет конфигурацию сервера.
@@ -36,6 +37,7 @@ type Config struct {
 	CryptoKey        string `json:"crypto_key" env:"CRYPTO_KEY"`               // CryptoKey Приватный ключ для использования асиметричного шифрования.
 	TrustedSubnet    string `json:"trusted_subnet" env:"TRUSTED_SUBNET"`       // TrustedSubnet Доверенная подсеть CIDR.
 	JSONConfig       string `json:"json_config" env:"CONFIG"`                  // JSONConfig Путь к файлу конфигурацияй в формате JSON (самй низкий приоритет)
+	IsHTTP           bool   `json:"http" env:"HTTP"`                           // IsHTTP Запуск HTTP сервера,по умолчанию запускается GRPC
 }
 
 // GetConfig возвращает настройки сервера, считываемые из флагов командной строки и переменных окружения.
@@ -64,6 +66,7 @@ func parseFlags() Config {
 	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "path to the file with a private key for asymmetric encryption")
 	flag.StringVar(&flagCfg.TrustedSubnet, "t", DefaultTrustedSubnet, "trusted subnet CIDR")
 	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "path to the configuration file in JSON format")
+	flag.BoolVar(&flagCfg.IsHTTP, "http", DefaultHTTP, "starting the HTTP server, GRPC is started by default")
 
 	flag.Parse()
 

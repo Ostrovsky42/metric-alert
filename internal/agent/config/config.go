@@ -22,6 +22,7 @@ const (
 	DefaultSignKey           = ""
 	DefaultRateLimit         = 1
 	DefaultPath              = ""
+	DefaultHTTP              = false
 )
 
 // Config содержит настройки агента.
@@ -35,6 +36,8 @@ type Config struct {
 	RateLimit         int    `json:"rate_limit" env:"RATE_LIMIT"`               // RateLimit определяет ограничение скорости запросов к серверу.
 	CryptoKey         string `json:"crypto_key" env:"CRYPTO_KEY"`               // CryptoKey Публичный ключ для использования асиметричного шифрования.
 	JSONConfig        string `json:"json_config" env:"CONFIG"`                  // JSONConfig Путь к файлу конфигурацияй в формате JSON (самй низкий приоритет)
+	IsHTTP            bool   `json:"http" env:"HTTP"`                           // IsHTTP Запуск HTTP клиента,по умолчанию запускается GRPC
+
 }
 
 // GetConfig возвращает настройки агента, считываемые из флагов командной строки и переменных окружения.
@@ -66,6 +69,7 @@ func parseFlags() Config {
 	flag.IntVar(&flagCfg.RateLimit, "l", DefaultRateLimit, "number of simultaneously requests to the server")
 	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "path to the file with the public key for asymmetric encryption")
 	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "path to the configuration file in JSON format")
+	flag.BoolVar(&flagCfg.IsHTTP, "http", DefaultHTTP, "starting the HTTP client, GRPC is started by default")
 
 	flag.Parse()
 

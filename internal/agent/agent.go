@@ -24,7 +24,7 @@ type Agent struct {
 
 func NewAgent(cfg *config.Config) *Agent {
 	return &Agent{
-		sender:         metricsender.NewMetricSender(cfg.ServerHost, cfg.LocalIP, cfg.SignKey, cfg.CryptoKey),
+		sender:         metricsender.NewMetricSender(cfg.IsHTTP, cfg.ServerHost, cfg.LocalIP, cfg.SignKey, cfg.CryptoKey),
 		gatherer:       gatherer.NewGatherer(cfg.PollIntervalSec),
 		reportInterval: time.Duration(cfg.ReportIntervalSec) * time.Second,
 		rateLimit:      cfg.RateLimit,
@@ -47,14 +47,14 @@ func (a *Agent) Run() {
 	}()
 
 	for id := 1; id <= a.rateLimit; id++ {
-		go a.sendPackReportJSON(id)
+		go a.sendPackReport(id)
 	}
 
 	<-done
 	a.wg.Wait()
 }
 
-func (a *Agent) sendPackReportJSON(workerID int) {
+func (a *Agent) sendPackReport(workerID int) {
 	for {
 		time.Sleep(a.reportInterval)
 		a.wg.Add(1)
@@ -64,8 +64,8 @@ func (a *Agent) sendPackReportJSON(workerID int) {
 			continue
 		}
 
-		if err := a.sender.SendMetricPackJSON(metrics); err != nil {
-			logger.Log.Error().Err(err).Msg("err SendMetricPackJSON")
+		if err := a.sender.SendMetricPack(metrics); err != nil {
+			logger.Log.Error().Err(err).Msg("err sendMetricPack")
 		}
 		logger.Log.Info().Int("worker_id", workerID).Msg("sent metrics")
 		a.wg.Done()
