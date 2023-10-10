@@ -1,7 +1,10 @@
-package proto
+package v1
 
 import (
 	"context"
+
+	"github.com/bufbuild/protovalidate-go"
+
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/logger"
 	"metric-alert/internal/server/repository"
@@ -14,16 +17,26 @@ import (
 var _ MetricsServiceServer = &Service{}
 
 type Service struct {
-	repo repository.MetricRepo
+	repo      repository.MetricRepo
+	validator *protovalidate.Validator
 }
 
 func NewService(repo repository.MetricRepo) Service {
+	v, err := protovalidate.New(protovalidate.WithMessages(&UpdateMetricsReq{}))
+	if err != nil {
+		logger.Log.Fatal().Err(err).Msg("failed to initialize validator")
+	}
 	return Service{
-		repo: repo,
+		repo:      repo,
+		validator: v,
 	}
 }
 
-func (m *Service) UpdateMetrics(ctx context.Context, req *UpdateMetricsReq) (*emptypb.Empty, error) {
+func (m *Service) UpdateMetricsV1(ctx context.Context, req *UpdateMetricsReq) (*emptypb.Empty, error) {
+	if err := m.validator.Validate(req); err != nil {
+		logger.Log.Error().Err(err).Msg("failed validation")
+	}
+
 	metrics := make([]entities.Metrics, 0, len(req.Metrics))
 	var metric entities.Metrics
 	for _, metricReq := range req.Metrics {

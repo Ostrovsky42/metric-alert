@@ -14,12 +14,12 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
+	pb "metric-alert/gen/pkg/metrics/v1"
 	"metric-alert/internal/agent/compressor"
 	"metric-alert/internal/agent/gatherer"
 	"metric-alert/internal/crypto/hybrid"
 	"metric-alert/internal/crypto/symmetric"
 	"metric-alert/internal/hasher"
-	"metric-alert/internal/proto"
 	"metric-alert/internal/server/entities"
 	"metric-alert/internal/server/logger"
 )
@@ -28,7 +28,7 @@ const numberOfAttempts = 3
 
 type MetricSender struct {
 	httpClient        *http.Client
-	grpcClient        proto.MetricsServiceClient
+	grpcClient        pb.MetricsServiceClient
 	hashBuilder       hasher.HashBuilder
 	encryptor         *hybrid.Encryptor
 	serverURL         string
@@ -58,7 +58,7 @@ func NewMetricSender(isHTTP bool, serverURL string, localIP string, signKey stri
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("err dial conn")
 	}
-	ms.grpcClient = proto.NewMetricsServiceClient(conn)
+	ms.grpcClient = pb.NewMetricsServiceClient(conn)
 
 	return ms
 }
@@ -130,18 +130,18 @@ func (s *MetricSender) sendMetricPackJSON(metrics []gatherer.Metrics) error {
 }
 
 func (s *MetricSender) sendMetricPackGRPC(metrics []gatherer.Metrics) error {
-	grpcMetrics := make([]*proto.Metric, 0, len(metrics))
+	grpcMetrics := make([]*pb.Metric, 0, len(metrics))
 	for _, metric := range metrics {
-		grpcMetric := &proto.Metric{
+		grpcMetric := &pb.Metric{
 			Id: metric.ID,
 		}
 
 		switch metric.MType {
 		case entities.Gauge:
-			grpcMetric.Type = proto.MetricType_GAUGE
+			grpcMetric.Type = pb.MetricType_GAUGE
 			grpcMetric.Value = getValue(metric.Value)
 		case entities.Counter:
-			grpcMetric.Type = proto.MetricType_COUNTER
+			grpcMetric.Type = pb.MetricType_COUNTER
 			grpcMetric.Delta = metric.Delta
 		}
 
@@ -151,7 +151,7 @@ func (s *MetricSender) sendMetricPackGRPC(metrics []gatherer.Metrics) error {
 	md := metadata.New(map[string]string{"X-Real-IP": s.localIP})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	if _, err := s.grpcClient.UpdateMetrics(ctx, &proto.UpdateMetricsReq{
+	if _, err := s.grpcClient.UpdateMetricsV1(ctx, &pb.UpdateMetricsReq{
 		Metrics: grpcMetrics,
 	}); err != nil {
 		return fmt.Errorf("send metrics process error: %w", err)

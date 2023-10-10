@@ -13,7 +13,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"metric-alert/internal/proto"
+	pb "metric-alert/gen/pkg/metrics/v1"
 	"metric-alert/internal/server/config"
 	"metric-alert/internal/server/handlers"
 	"metric-alert/internal/server/logger"
@@ -94,8 +94,8 @@ func (a Application) RunHTTP() {
 func (a Application) RunGRPC() {
 	grpcServer := grpc.NewServer()
 
-	service := proto.NewService(a.storage)
-	proto.RegisterMetricsServiceServer(grpcServer, &service)
+	service := pb.NewService(a.storage)
+	pb.RegisterMetricsServiceServer(grpcServer, &service)
 	lis, err := net.Listen("tcp", a.serverHost)
 	if err != nil {
 		logger.Log.Fatal().Err(err).Msg("Error start listen")
