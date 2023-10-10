@@ -6,3 +6,5 @@ lint:
   use:
     - DEFAULT
   rpc_allow_google_protobuf_empty_requests: true
+deps:
+  - buf.build/bufbuild/protovalidate

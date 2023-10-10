@@ -34,7 +34,7 @@ func NewService(repo repository.MetricRepo) Service {
 
 func (m *Service) UpdateMetricsV1(ctx context.Context, req *UpdateMetricsReq) (*emptypb.Empty, error) {
 	if err := m.validator.Validate(req); err != nil {
-		logger.Log.Error().Err(err).Msg("failed validation")
+		logger.Log.Error().Interface("request", req.String()).Err(err).Msg("failed validation")
 	}
 
 	metrics := make([]entities.Metrics, 0, len(req.Metrics))
