@@ -4,6 +4,8 @@ package config
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
+	"net"
 	"os"
 
 	"metric-alert/internal/server/logger"
@@ -20,10 +22,12 @@ const (
 	DefaultSignKey           = ""
 	DefaultRateLimit         = 1
 	DefaultPath              = ""
+	DefaultHTTP              = false
 )
 
 // Config содержит настройки агента.
 type Config struct {
+	LocalIP           string // LocalIP заполняется при старте программы.
 	ServerHost        string `json:"server_host" env:"ADDRESS"`                 // ServerHost определяет адрес сервера.
 	ProfilerHost      string `json:"profiler_host" env:"PROFILER_HOST"`         // ProfilerHost Порт на котором будет запускаться сервер для профилирования.
 	ReportIntervalSec int    `json:"report_interval_sec" env:"REPORT_INTERVAL"` // ReportIntervalSec определяет интервал отправки метрик.
@@ -32,20 +36,26 @@ type Config struct {
 	RateLimit         int    `json:"rate_limit" env:"RATE_LIMIT"`               // RateLimit определяет ограничение скорости запросов к серверу.
 	CryptoKey         string `json:"crypto_key" env:"CRYPTO_KEY"`               // CryptoKey Публичный ключ для использования асиметричного шифрования.
 	JSONConfig        string `json:"json_config" env:"CONFIG"`                  // JSONConfig Путь к файлу конфигурацияй в формате JSON (самй низкий приоритет)
+	IsHTTP            bool   `json:"http" env:"HTTP"`                           // IsHTTP Запуск HTTP клиента,по умолчанию запускается GRPC
+
 }
 
 // GetConfig возвращает настройки агента, считываемые из флагов командной строки и переменных окружения.
 // Если переменные не предоставлены, будут использованы значения по умолчанию.
-func GetConfig() Config {
+func GetConfig() *Config {
 	cfg := parseFlags()
 	err := env.Parse(&cfg)
 	if err != nil {
-		logger.Log.Fatal().Msg("err parse environment variable to agent config")
+		logger.Log.Fatal().Err(err).Msg("err parse environment variable to agent config")
 	}
 
 	CheckJSONConfig(&cfg)
+	cfg.LocalIP, err = getLocalIP()
+	if err != nil {
+		logger.Log.Fatal().Err(err).Msg("err get local ip")
+	}
 
-	return cfg
+	return &cfg
 }
 
 // parseFlags разбирает флаги командной строки и возвращает настройки агента.
@@ -59,6 +69,7 @@ func parseFlags() Config {
 	flag.IntVar(&flagCfg.RateLimit, "l", DefaultRateLimit, "number of simultaneously requests to the server")
 	flag.StringVar(&flagCfg.CryptoKey, "crypto-key", DefaultPath, "path to the file with the public key for asymmetric encryption")
 	flag.StringVar(&flagCfg.JSONConfig, "config", DefaultPath, "path to the configuration file in JSON format")
+	flag.BoolVar(&flagCfg.IsHTTP, "http", DefaultHTTP, "starting the HTTP client, GRPC is started by default")
 
 	flag.Parse()
 
@@ -110,4 +121,29 @@ func setJSONConfig(config *Config, jsonConfig Config) {
 	if config.CryptoKey == DefaultPath {
 		config.CryptoKey = jsonConfig.CryptoKey
 	}
+}
+
+func getLocalIP() (string, error) {
+	iFaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+
+	for _, iFace := range iFaces {
+		if iFace.Flags&net.FlagUp != 0 && iFace.Flags&net.FlagLoopback == 0 {
+			adders, err := iFace.Addrs()
+			if err != nil {
+				return "", err
+			}
+
+			for _, addr := range adders {
+				IPNet, ok := addr.(*net.IPNet)
+				if ok && !IPNet.IP.IsLoopback() && IPNet.IP.To4() != nil {
+					return IPNet.IP.String(), nil
+				}
+			}
+		}
+	}
+
+	return "", fmt.Errorf("err found local IP address")
 }

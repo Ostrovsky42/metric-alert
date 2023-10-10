@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package proto.api.metrics.v1;
+
+import "google/protobuf/empty.proto";
+import "buf/validate/validate.proto";
+
+option go_package = "github.com/Ostrovsky42/metric-alert/pkg/api/metrics/v1";
+
+service MetricsService {
+   // UpdateMetrics предоставляет обработчик для обновления пакета метрик
+  rpc UpdateMetricsV1(UpdateMetricsReq) returns (google.protobuf.Empty);
+}
+
+//Типы метрик
+enum MetricType {
+  GAUGE= 0;
+  COUNTER = 1;
+}
+
+//Метрика
+message Metric{
+  int64 delta = 1;
+  double value = 2;
+  string id = 3[(buf.validate.field).string.min_len=1];
+  MetricType type = 4 [(buf.validate.field).enum.defined_only= true];
+
+   option (buf.validate.message).cel = {
+     id: "metric.delta",
+     message: "Delta must be greater than 0 if type is COUNTER",
+     expression: "this.type == 1 && this.delta <= 0"
+   };
+  option (buf.validate.message).cel = {
+    id: "metric.value",
+    message: "Value must be greater than 0 if type is GAUGE",
+    expression: "this.type == 0 && this.value <= 0"
+  };
+}
+
+//Запрос обновления метрик
+message UpdateMetricsReq{
+  repeated Metric metrics = 1;
+}
