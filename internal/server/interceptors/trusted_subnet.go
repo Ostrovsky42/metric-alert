@@ -2,12 +2,14 @@ package interceptors
 
 import (
 	"context"
+	"net"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+
 	"metric-alert/internal/server/logger"
-	"net"
 )
 
 func TrustedSubnetInterceptor(subnet string) grpc.UnaryServerInterceptor {
