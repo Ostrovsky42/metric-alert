@@ -16,6 +16,7 @@ import (
 	pb "metric-alert/gen/pkg/metrics/v1"
 	"metric-alert/internal/server/config"
 	"metric-alert/internal/server/handlers"
+	"metric-alert/internal/server/interceptors"
 	"metric-alert/internal/server/logger"
 	"metric-alert/internal/server/repository"
 )
@@ -92,7 +93,9 @@ func (a Application) RunHTTP() {
 }
 
 func (a Application) RunGRPC() {
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptors.TrustedSubnetInterceptor(a.subnet)),
+	)
 
 	service := pb.NewService(a.storage)
 	pb.RegisterMetricsServiceServer(grpcServer, &service)
